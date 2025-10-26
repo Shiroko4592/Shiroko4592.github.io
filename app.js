@@ -9,10 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
   checkLoginStatus();
   setupDarkMode();
   setupAddWord();
-  loadWords(); // localStorage에서 불러오기
+  loadWords();
 });
 
-/* 로그인 */
+/* 로그인 버튼/로그아웃 버튼 */
 function setupLoginButtons() {
   const loginBtn = document.getElementById('login-btn');
   const logoutBtn = document.getElementById('logout-btn');
@@ -45,7 +45,7 @@ function checkLoginStatus() {
   }
 }
 
-/* 프로필 표시 */
+/* 네이버 프로필 가져오기 */
 async function fetchUserProfile(token) {
   try {
     const res = await fetch('https://openapi.naver.com/v1/nid/me', {
@@ -80,6 +80,7 @@ function displayWords(data) {
     wordList.innerHTML = '<li>등록된 단어가 없습니다.</li>';
     return;
   }
+
   data.forEach(item => {
     const li = document.createElement('li');
     li.innerHTML = `
@@ -145,10 +146,12 @@ function setupAddWord() {
     const def = document.getElementById('new-definition').value.trim();
     const tags = document.getElementById('new-tags').value.trim();
     if (!word || !def) return alert('단어와 뜻은 필수입니다.');
+
     const newWord = { word, definition: def, tags, favorite: false };
     wordData.push(newWord);
     saveWords();
     displayWords(wordData);
+
     document.getElementById('new-word').value = '';
     document.getElementById('new-definition').value = '';
     document.getElementById('new-tags').value = '';
