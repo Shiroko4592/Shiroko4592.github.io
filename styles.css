@@ -8,12 +8,31 @@ body {
   line-height: 1.5;
 }
 
-/* 헤더 */
 header {
-  background-color: #27a300; /* 색 대비 개선 */
+  background-color: #27a300;
   color: #fff;
   padding: 20px;
   text-align: center;
+  position: relative;
+}
+
+#login-btn,
+#logout-btn {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  background-color: #fff;
+  color: #27a300;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#login-btn:hover,
+#logout-btn:hover {
+  background-color: #e8e8e8;
 }
 
 /* 메인 영역 */
