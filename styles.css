@@ -1,29 +1,29 @@
-/* styles.css: 스타일 시트 */
-/* 전체 레이아웃 및 폰트 기본 설정 */
+/* 기본 레이아웃 */
 body {
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: "Arial", sans-serif;
   background-color: #f8f8f8;
   color: #333;
+  line-height: 1.5;
 }
 
-/* 헤더 스타일 */
+/* 헤더 */
 header {
-  background-color: #2db400;
-  color: white;
+  background-color: #27a300; /* 색 대비 개선 */
+  color: #fff;
   padding: 20px;
   text-align: center;
 }
 
-/* 메인 컨테이너 스타일 */
+/* 메인 영역 */
 main {
   max-width: 800px;
   margin: 20px auto;
   padding: 10px;
 }
 
-/* 검색 입력창 (미구현) 스타일 */
+/* 검색창 */
 #search-input {
   width: 100%;
   padding: 10px;
@@ -33,28 +33,33 @@ main {
   border-radius: 4px;
 }
 
-/* 단어 리스트 스타일 */
+/* 단어 리스트 */
 #word-list {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
-/* 개별 단어 항목 스타일 */
+/* 단어 항목 */
 #word-list li {
-  background-color: white;
-  margin-bottom: 10px;
-  padding: 15px;
+  background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 4px;
+  padding: 15px;
   transition: background-color 0.3s;
 }
 
-/* 마우스 오버 시 효과 */
-#word-list li:hover {
-  background-color: #f0f0f0;
+/* 항목 간 간격 */
+#word-list li + li {
+  margin-top: 12px;
 }
 
-/* 반응형 디자인: 모바일 기기에서 margin 조정 */
+/* 마우스 오버 효과 */
+#word-list li:hover {
+  background-color: #fafafa;
+}
+
+/* 반응형 */
 @media (max-width: 600px) {
   main {
     margin: 10px;
