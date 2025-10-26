@@ -17,6 +17,15 @@
 
   <main>
     <section aria-label="단어 목록">
+      <div id="csv-upload-section">
+        <label for="csv-file" class="csv-upload-label">
+          📂 CSV 파일 업로드
+          <input type="file" id="csv-file" accept=".csv,.txt" style="display:none;"/>
+        </label>
+        <span id="csv-file-name"></span>
+        <button id="clear-all-btn">전체 삭제</button>
+      </div>
+      
       <input type="text" id="search-input" placeholder="단어 검색..." aria-label="단어 검색"/>
       <ul id="word-list"></ul>
 

@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   checkLoginStatus();
   setupDarkMode();
   setupAddWord();
+  setupCSVUpload();
   loadWords();
 });
 
@@ -163,6 +164,165 @@ function setupAddWord() {
     document.getElementById('new-definition').value = '';
     document.getElementById('new-tags').value = '';
   });
+}
+
+/* CSV 업로드 */
+function setupCSVUpload() {
+  const fileInput = document.getElementById('csv-file');
+  const fileNameDisplay = document.getElementById('csv-file-name');
+  const clearAllBtn = document.getElementById('clear-all-btn');
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    fileNameDisplay.textContent = `파일: ${file.name}`;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target.result;
+        const newWords = parseCSV(text);
+        
+        if (newWords.length === 0) {
+          alert('CSV 파일에서 단어를 찾을 수 없습니다.');
+          return;
+        }
+
+        const duplicates = [];
+        const added = [];
+        
+        newWords.forEach(newWord => {
+          const exists = wordData.some(w => w.word.toLowerCase() === newWord.word.toLowerCase());
+          if (exists) {
+            duplicates.push(newWord.word);
+          } else {
+            wordData.push(newWord);
+            added.push(newWord.word);
+          }
+        });
+
+        saveWords();
+        displayWords(wordData);
+        
+        let message = `${added.length}개의 단어를 추가했습니다.`;
+        if (duplicates.length > 0) {
+          message += `\n\n중복된 ${duplicates.length}개의 단어는 건너뛰었습니다.`;
+        }
+        alert(message);
+        
+        fileInput.value = '';
+        fileNameDisplay.textContent = '';
+      } catch (err) {
+        console.error('CSV 파싱 오류:', err);
+        alert('CSV 파일을 읽는 중 오류가 발생했습니다.');
+      }
+    };
+    
+    reader.readAsText(file, 'UTF-8');
+  });
+
+  clearAllBtn.addEventListener('click', () => {
+    if (confirm(`정말로 모든 단어(${wordData.length}개)를 삭제하시겠습니까?`)) {
+      wordData = [];
+      saveWords();
+      displayWords(wordData);
+      alert('모든 단어가 삭제되었습니다.');
+    }
+  });
+}
+
+/* CSV 파싱 함수 */
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, '');
+  
+  const lines = text.split('\n').filter(line => line.trim());
+  const words = [];
+  
+  lines.forEach((line, index) => {
+    if (index === 0 && (line.includes('단어') || line.includes('word') || line.includes('Entry'))) {
+      return;
+    }
+    
+    const parts = parseCSVLine(line);
+    
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      words.push({
+        word: parts[0],
+        definition: parts[1],
+        tags: parts[2] || '',
+        favorite: false
+      });
+    }
+  });
+  
+  return words;
+}
+
+/* CSV 라인 파싱 (RFC 4180: 큰따옴표만 처리) */
+function parseCSVLine(line) {
+  const delimiter = detectDelimiter(line);
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  let fieldStart = true;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+    
+    if (fieldStart && !inQuotes && char === '"') {
+      inQuotes = true;
+      fieldStart = false;
+    } else if (inQuotes && char === '"') {
+      if (nextChar === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = false;
+      }
+    } else if (char === delimiter && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+      fieldStart = true;
+    } else {
+      if (char !== ' ' && char !== '\t') {
+        fieldStart = false;
+      }
+      current += char;
+    }
+  }
+  
+  result.push(current.trim());
+  
+  return result;
+}
+
+/* 구분자 감지 (큰따옴표 밖에서만 확인) */
+function detectDelimiter(line) {
+  let inQuotes = false;
+  let commas = 0;
+  let tabs = 0;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    
+    if (!inQuotes && char === '"') {
+      inQuotes = true;
+    } else if (inQuotes && char === '"') {
+      const nextChar = line[i + 1];
+      if (nextChar !== '"') {
+        inQuotes = false;
+      } else {
+        i++;
+      }
+    } else if (!inQuotes) {
+      if (char === ',') commas++;
+      if (char === '\t') tabs++;
+    }
+  }
+  
+  return tabs > commas ? '\t' : ',';
 }
 
 /* 모달 */
