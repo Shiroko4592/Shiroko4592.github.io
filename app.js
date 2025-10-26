@@ -11,15 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
   setupAddWord();
 });
 
-/* 로그인 버튼 설정 */
+/* 로그인 버튼 */
 function setupLoginButtons() {
   const loginBtn = document.getElementById('login-btn');
   const logoutBtn = document.getElementById('logout-btn');
 
   loginBtn.addEventListener('click', () => {
-    const loginUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=token&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
-      REDIRECT_URI
-    )}&state=${STATE}`;
+    const loginUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=token&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${STATE}`;
     window.location.href = loginUrl;
   });
 
@@ -44,11 +42,11 @@ function checkLoginStatus() {
     document.getElementById('logout-btn').style.display = 'inline';
     fetchUserProfile(token);
   } else {
-    fetchWords(); // 로그인 안 해도 모든 단어 보여줌
+    fetchWords(); 
   }
 }
 
-/* 네이버 프로필 불러오기 */
+/* 프로필 불러오기 */
 async function fetchUserProfile(token) {
   try {
     const response = await fetch('https://openapi.naver.com/v1/nid/me', {
@@ -58,7 +56,7 @@ async function fetchUserProfile(token) {
     if (data.resultcode === '00') {
       const user = data.response;
       document.getElementById('user-nickname').textContent = `안녕하세요, ${user.nickname || user.name}님`;
-      fetchWords(); // 로그인해도 전체 단어 표시
+      fetchWords();
     } else {
       throw new Error('프로필 가져오기 실패');
     }
@@ -69,37 +67,31 @@ async function fetchUserProfile(token) {
   }
 }
 
-/* 단어 데이터 fetch */
+/* 단어 fetch */
 async function fetchWords() {
   try {
     const response = await fetch('words.json');
     if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-
     let data = await response.json();
-
-    // 로컬스토리지 즐겨찾기 반영
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     data.forEach(d => (d.favorite = favorites.includes(d.word)));
-
     wordData = data;
     displayWords(wordData);
     enableSearch();
     setupWordModal();
   } catch (error) {
-    console.error('단어 데이터를 가져오는 중 에러:', error);
+    console.error('단어 fetch 중 에러:', error);
   }
 }
 
-/* 단어 리스트 표시 */
+/* 단어 표시 */
 function displayWords(data) {
   const wordList = document.getElementById('word-list');
   wordList.innerHTML = '';
-
   if (data.length === 0) {
     wordList.innerHTML = '<li>등록된 단어가 없습니다.</li>';
     return;
   }
-
   data.forEach(item => {
     const li = document.createElement('li');
     li.innerHTML = `
@@ -113,27 +105,23 @@ function displayWords(data) {
     `;
     wordList.appendChild(li);
 
-    /* 즐겨찾기 클릭 */
     li.querySelector('.favorite-btn').addEventListener('click', () => {
       item.favorite = !item.favorite;
       updateFavorites(item.word, item.favorite);
       displayWords(wordData);
     });
 
-    /* 삭제 클릭 */
     li.querySelector('.delete-btn').addEventListener('click', () => {
       wordData = wordData.filter(w => w.word !== item.word);
       displayWords(wordData);
     });
 
-    /* 단어 클릭 -> 모달 */
     li.querySelector('strong').addEventListener('click', () => {
       openModal(item);
     });
   });
 }
 
-/* 즐겨찾기 업데이트 */
 function updateFavorites(word, fav) {
   let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
   if (fav) {
@@ -144,7 +132,7 @@ function updateFavorites(word, fav) {
   localStorage.setItem('favorites', JSON.stringify(favorites));
 }
 
-/* 검색 기능 */
+/* 검색 */
 function enableSearch() {
   const searchInput = document.getElementById('search-input');
   searchInput.addEventListener('input', e => {
@@ -157,7 +145,7 @@ function enableSearch() {
   });
 }
 
-/* 다크모드 토글 */
+/* 다크모드 */
 function setupDarkMode() {
   const btn = document.getElementById('darkmode-btn');
   btn.addEventListener('click', () => {
@@ -172,31 +160,22 @@ function setupAddWord() {
     const word = document.getElementById('new-word').value.trim();
     const def = document.getElementById('new-definition').value.trim();
     const tags = document.getElementById('new-tags').value.trim();
-
     if (!word || !def) return alert('단어와 뜻은 필수입니다.');
-
     const newWord = { word, definition: def, tags, favorite: false };
     wordData.push(newWord);
     displayWords(wordData);
-
     document.getElementById('new-word').value = '';
     document.getElementById('new-definition').value = '';
     document.getElementById('new-tags').value = '';
   });
 }
 
-/* 단어 모달 */
+/* 모달 */
 function setupWordModal() {
   const modal = document.getElementById('word-modal');
   const closeBtn = document.getElementById('close-modal');
-
-  closeBtn.addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
-
-  window.addEventListener('click', e => {
-    if (e.target === modal) modal.style.display = 'none';
-  });
+  closeBtn.addEventListener('click', () => modal.style.display = 'none');
+  window.addEventListener('click', e => { if(e.target===modal) modal.style.display='none'; });
 }
 
 function openModal(item) {
