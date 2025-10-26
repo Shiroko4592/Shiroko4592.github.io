@@ -4,7 +4,7 @@
 A web-based Indonesian-Korean dictionary application with Naver OAuth login integration. Users can add, search, favorite, and manage Indonesian-Korean word pairs. The application uses localStorage for data persistence and includes dark mode functionality.
 
 ## Project Type
-Static web application (HTML/CSS/JavaScript) - Frontend only
+Full-stack web application with Flask backend and vanilla JavaScript frontend
 
 ## Key Features
 - Naver OAuth login integration
@@ -13,12 +13,14 @@ Static web application (HTML/CSS/JavaScript) - Frontend only
 - Dark mode toggle
 - Modal word detail view
 - Local storage for data persistence
+- Backend proxy for Naver API (resolves CORS issues)
 
 ## Tech Stack
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Backend**: Flask (Python), Flask-CORS, Requests
 - **Authentication**: Naver OAuth 2.0
 - **Storage**: Browser localStorage
-- **Server**: Python HTTP server (for development)
+- **Server**: Flask development server
 
 ## Project Structure
 ```
@@ -26,7 +28,9 @@ Static web application (HTML/CSS/JavaScript) - Frontend only
 ├── index.html          # Main HTML page
 ├── app.js              # JavaScript application logic
 ├── styles.css          # Styling and dark mode
+├── server.py           # Flask backend with Naver API proxy
 ├── README.md           # Project information (Korean)
+├── .gitignore          # Git ignore rules
 └── CNAME              # Custom domain configuration
 ```
 
@@ -34,19 +38,29 @@ Static web application (HTML/CSS/JavaScript) - Frontend only
 - **Port**: 5000 (required for Replit)
 - **Host**: 0.0.0.0 (to allow external access)
 - **Naver OAuth Client ID**: Configured in app.js
+- **API Proxy**: /api/naver/profile endpoint
 
 ## Recent Changes
 - **2025-10-26**: Imported from GitHub and configured for Replit environment
-  - Set up Python HTTP server for static file serving
-  - Configured workflow to run on port 5000
+  - Set up Flask backend server for static file serving
+  - Added Naver API proxy endpoint to resolve CORS issues
+  - Modified app.js to use backend proxy instead of direct API calls
+  - Configured workflow to run Flask server on port 5000
   - Added .gitignore for Python and Replit files
-  - Configured deployment settings
+  - Configured deployment settings for autoscale
 
 ## User Preferences
 None yet
 
 ## Architecture Notes
-- Pure client-side application with no backend
-- All data stored in browser localStorage
+- Flask backend serves static files and provides API proxy
+- Backend proxy resolves CORS issues when calling Naver API
+- All user data stored in browser localStorage (client-side)
 - OAuth redirect handled client-side via URL hash parameters
-- Simple Python HTTP server used for serving static files in development
+- Backend endpoint `/api/naver/profile` proxies requests to Naver's user profile API
+
+## Known Issues & Solutions
+- **CORS Issue**: Direct browser calls to Naver API are blocked by CORS policy
+  - **Solution**: Flask backend proxies the API call to avoid CORS restrictions
+- **Login Flow**: Token received via URL hash after OAuth redirect
+  - Token stored in localStorage for subsequent API calls

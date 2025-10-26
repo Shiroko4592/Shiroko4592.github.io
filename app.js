@@ -48,18 +48,25 @@ function checkLoginStatus() {
 /* 네이버 프로필 가져오기 */
 async function fetchUserProfile(token) {
   try {
-    const res = await fetch('https://openapi.naver.com/v1/nid/me', {
+    const res = await fetch('/api/naver/profile', {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
+    
     if (data.resultcode === '00') {
       const user = data.response;
       document.getElementById('user-nickname').textContent = `안녕하세요, ${user.nickname || user.name}님`;
+    } else if (data.auth_failed) {
+      console.error('인증 실패:', data.error);
+      localStorage.removeItem('naver_token');
+      document.getElementById('login-btn').style.display = 'inline';
+      document.getElementById('logout-btn').style.display = 'none';
+      document.getElementById('user-nickname').textContent = '';
+    } else if (data.error) {
+      console.warn('일시적 오류:', data.error);
     }
   } catch (err) {
-    console.error(err);
-    localStorage.removeItem('naver_token');
-    window.location.reload();
+    console.error('네트워크 오류:', err);
   }
 }
 
