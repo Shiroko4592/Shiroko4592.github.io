@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupAddWord();
 });
 
-/* 로그인 버튼 */
+/* 로그인 버튼 설정 */
 function setupLoginButtons() {
   const loginBtn = document.getElementById('login-btn');
   const logoutBtn = document.getElementById('logout-btn');
@@ -44,11 +44,11 @@ function checkLoginStatus() {
     document.getElementById('logout-btn').style.display = 'inline';
     fetchUserProfile(token);
   } else {
-    fetchWords();
+    fetchWords(); // 로그인 안 해도 모든 단어 보여줌
   }
 }
 
-/* 네이버 프로필 */
+/* 네이버 프로필 불러오기 */
 async function fetchUserProfile(token) {
   try {
     const response = await fetch('https://openapi.naver.com/v1/nid/me', {
@@ -57,7 +57,8 @@ async function fetchUserProfile(token) {
     const data = await response.json();
     if (data.resultcode === '00') {
       const user = data.response;
-      fetchWords(user.id);
+      document.getElementById('user-nickname').textContent = `안녕하세요, ${user.nickname || user.name}님`;
+      fetchWords(); // 로그인해도 전체 단어 표시
     } else {
       throw new Error('프로필 가져오기 실패');
     }
@@ -69,15 +70,14 @@ async function fetchUserProfile(token) {
 }
 
 /* 단어 데이터 fetch */
-async function fetchWords(userId = null) {
+async function fetchWords() {
   try {
     const response = await fetch('words.json');
     if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
 
     let data = await response.json();
-    if (userId) data = data.filter(item => item.userId === userId);
 
-    // 로컬스토리지에 저장된 즐겨찾기 반영
+    // 로컬스토리지 즐겨찾기 반영
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     data.forEach(d => (d.favorite = favorites.includes(d.word)));
 
@@ -86,7 +86,7 @@ async function fetchWords(userId = null) {
     enableSearch();
     setupWordModal();
   } catch (error) {
-    console.error(error);
+    console.error('단어 데이터를 가져오는 중 에러:', error);
   }
 }
 
@@ -114,14 +114,14 @@ function displayWords(data) {
     wordList.appendChild(li);
 
     /* 즐겨찾기 클릭 */
-    li.querySelector('.favorite-btn').addEventListener('click', e => {
+    li.querySelector('.favorite-btn').addEventListener('click', () => {
       item.favorite = !item.favorite;
       updateFavorites(item.word, item.favorite);
       displayWords(wordData);
     });
 
     /* 삭제 클릭 */
-    li.querySelector('.delete-btn').addEventListener('click', e => {
+    li.querySelector('.delete-btn').addEventListener('click', () => {
       wordData = wordData.filter(w => w.word !== item.word);
       displayWords(wordData);
     });
@@ -157,7 +157,7 @@ function enableSearch() {
   });
 }
 
-/* 다크모드 */
+/* 다크모드 토글 */
 function setupDarkMode() {
   const btn = document.getElementById('darkmode-btn');
   btn.addEventListener('click', () => {
