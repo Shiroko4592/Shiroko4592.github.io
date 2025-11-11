@@ -18,6 +18,18 @@
         </div>
         <div id="result"></div>
     </main>
+<main>
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="일본어 단어를 입력하세요" list="suggestions">
+        <datalist id="suggestions"></datalist>
+        <button id="search-btn">검색</button>
+    </div>
+    <div id="result"></div>
+    <div id="history-container">
+        <h3>검색 기록</h3>
+        <ul id="history-list"></ul>
+    </div>
+</main>
 
     <script src="DictDatabase.js"></script>
     <script src="dict.js"></script>
