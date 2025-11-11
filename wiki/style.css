@@ -1,3 +1,24 @@
+/* 거란 문자 폰트 불러오기 */
+@font-face {
+  font-family: 'Khitann';
+  src: url('fonts/Khitann.woff2') format('woff2'),
+       url('fonts/Khitann.woff') format('woff'),
+       url('fonts/Khitann.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* 중국어 간체 폰트 불러오기 (Noto Sans SC 예시) */
+@font-face {
+  font-family: 'NotoSansSC';
+  src: url('fonts/NotoSansSC-Regular.woff2') format('woff2'),
+       url('fonts/NotoSansSC-Regular.woff') format('woff'),
+       url('fonts/NotoSansSC-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* 전체 기본 폰트 */
 body {
   font-family: 'Arial', sans-serif;
   margin: 0;
@@ -5,6 +26,7 @@ body {
   background: #fdfdfd;
 }
 
+/* 헤더 */
 header {
   background-color: #2c3e50;
   color: white;
@@ -21,6 +43,7 @@ header button {
   padding: 5px 10px;
 }
 
+/* 메인 콘텐츠 */
 main {
   max-width: 800px;
   margin: 20px auto;
@@ -28,14 +51,34 @@ main {
   background: white;
   border-radius: 8px;
   box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+  font-family: 'Khitann', 'Arial', sans-serif; /* 기본 폰트 */
 }
 
-footer {
-  text-align: center;
-  padding: 15px;
-  background: #eee;
+/* 한자만 중국어 간체 폰트 적용 */
+main, main * {
+  font-family: 'Khitann', 'Arial', sans-serif;
 }
 
+main :is(*:not(.footnote)) {
+  font-family: 'Khitann', 'Arial', sans-serif;
+}
+
+/* 한자 범위 선택: U+4E00 ~ U+9FFF (CJK Unified Ideographs) */
+main {
+  font-family: 'Khitann', 'Arial', sans-serif;
+}
+
+main span.hanzi {
+  font-family: 'NotoSansSC', 'Khitann', 'Arial', sans-serif;
+}
+
+/* JS에서 한자를 자동으로 span.hanzi로 감싸는 방법 */
+/*
+예시: WikiTable.js에서 parse() 끝에 추가
+text = text.replace(/[\u4E00-\u9FFF]/g, match => `<span class="hanzi">${match}</span>`);
+*/
+
+/* 링크 */
 a {
   color: #2980b9;
   text-decoration: none;
@@ -45,7 +88,15 @@ a:hover {
   text-decoration: underline;
 }
 
+/* 각주 */
 .footnote {
   font-size: 0.8em;
   color: gray;
+}
+
+/* 푸터 */
+footer {
+  text-align: center;
+  padding: 15px;
+  background: #eee;
 }
