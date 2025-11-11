@@ -2,6 +2,16 @@ const searchInput = document.getElementById("search-input");
 const resultDiv = document.getElementById("result");
 const historyList = document.getElementById("history-list");
 const suggestions = document.getElementById("suggestions");
+const copyBtn = document.getElementById("copy-btn");
+
+copyBtn.addEventListener("click", () => {
+    const text = resultDiv.textContent;
+    if (text) {
+        navigator.clipboard.writeText(text)
+            .then(() => alert("뜻이 복사되었습니다!"))
+            .catch(() => alert("복사 실패!"));
+    }
+});
 
 function updateSuggestions() {
     const query = searchInput.value.trim();
