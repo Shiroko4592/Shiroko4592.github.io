@@ -1,6 +1,6 @@
 /* app.js: 로그인 + CSV/JSON 단어 표시 로직 */
 
-const CLIENT_ID = '네이버_앱_CLIENT_ID';
+const CLIENT_ID = 'a2Xe9EBy8JP9v1hST96N';
 const REDIRECT_URI = window.location.origin + '/';
 const STATE = 'naver_auth_' + Math.random().toString(36).substring(2);
 
