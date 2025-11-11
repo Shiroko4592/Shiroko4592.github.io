@@ -90,3 +90,52 @@ searchInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") doSearch();
 });
 searchInput.addEventListener("input", updateSuggestions);
+
+let draggedItem = null;
+
+function addHistory(word) {
+    const li = document.createElement("li");
+    li.textContent = word;
+    li.draggable = true; // 드래그 가능
+
+    li.addEventListener("click", () => {
+        searchInput.value = word;
+        doSearch();
+    });
+
+    // 카드 등장 애니메이션
+    li.style.opacity = 0;
+    li.style.transform = "translateY(-10px)";
+    historyList.prepend(li);
+    setTimeout(() => {
+        li.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+        li.style.opacity = 1;
+        li.style.transform = "translateY(0)";
+    }, 10);
+
+    // 드래그 이벤트들
+    li.addEventListener("dragstart", (e) => {
+        draggedItem = li;
+        setTimeout(() => (li.style.opacity = "0.3"), 0);
+    });
+
+    li.addEventListener("dragend", (e) => {
+        draggedItem.style.opacity = "1";
+        draggedItem = null;
+    });
+
+    li.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        const draggingOver = e.target.closest("li");
+        if (draggingOver && draggingOver !== draggedItem) {
+            const allItems = Array.from(historyList.children);
+            const draggingIndex = allItems.indexOf(draggedItem);
+            const overIndex = allItems.indexOf(draggingOver);
+            if (draggingIndex > overIndex) {
+                historyList.insertBefore(draggedItem, draggingOver);
+            } else {
+                historyList.insertBefore(draggedItem, draggingOver.nextSibling);
+            }
+        }
+    });
+}
