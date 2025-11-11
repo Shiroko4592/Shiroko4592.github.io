@@ -73,3 +73,107 @@ header {
     font-size: 14px;
     cursor: pointer;
 }
+
+/* 전체 글씨와 여백 조정 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f3f3f3;
+    font-size: 16px;
+}
+
+/* 헤더 터치 영역 크게 */
+header {
+    background-color: #27a300;
+    color: white;
+    padding: 25px 10px;
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+/* 검색창 중앙 정렬, 모바일에서도 넓게 */
+.search-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 15px;
+}
+
+#search-input {
+    width: 90%;
+    max-width: 400px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+#search-btn {
+    width: 90%;
+    max-width: 400px;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+    background-color: #27a300;
+    color: white;
+}
+
+/* 결과와 복사 버튼 */
+#result-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+#copy-btn {
+    margin-left: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    background-color: #f0a500;
+    color: white;
+}
+
+/* 검색 기록 박스 */
+#history-container {
+    width: 90%;
+    max-width: 400px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+#history-list li {
+    padding: 8px 5px;
+    cursor: pointer;
+    color: #27a300;
+}
+
+#history-list li:hover {
+    text-decoration: underline;
+}
+
+/* 반응형 조정 */
+@media (max-width: 500px) {
+    #search-btn, #search-input, #copy-btn {
+        font-size: 15px;
+    }
+    #result-container {
+        flex-direction: column;
+    }
+    #copy-btn {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+}
