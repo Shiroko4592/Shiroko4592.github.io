@@ -376,3 +376,24 @@ header {
         margin-top: 10px;
     }
 }
+
+/* 검색 기록 카드 스타일 */
+#history-list li {
+    list-style: none;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #ffecd2, #fcb69f);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+    font-weight: 500;
+    color: #333;
+}
+
+/* 호버 및 터치 애니메이션 */
+#history-list li:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 12px rgba(0,0,0,0.2);
+    background: linear-gradient(90deg, #fcb69f, #ffecd2);
+}
