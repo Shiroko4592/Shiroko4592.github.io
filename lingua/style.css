@@ -207,3 +207,172 @@ header {
     color: white;
     cursor: pointer;
 }
+
+/* 전체 배경과 폰트 */
+body {
+    font-family: 'Noto Sans KR', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #a8edea, #fed6e3);
+    font-size: 16px;
+}
+
+/* 헤더 디자인 */
+header {
+    background-color: #ff6f61;
+    color: white;
+    padding: 25px 10px;
+    text-align: center;
+    font-size: 1.8rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* 검색창 */
+.search-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 15px;
+}
+
+#search-input {
+    width: 90%;
+    max-width: 400px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 20px;
+    border: 2px solid #ff6f61;
+    outline: none;
+    transition: border 0.3s;
+}
+
+#search-input:focus {
+    border-color: #4facfe;
+}
+
+/* 검색 버튼 */
+#search-btn {
+    width: 90%;
+    max-width: 400px;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 20px;
+    border: none;
+    background: linear-gradient(90deg, #ff6f61, #ff9472);
+    color: white;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+#search-btn:hover {
+    transform: scale(1.05);
+}
+
+/* 결과 및 복사 버튼 */
+#result-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+#copy-btn {
+    margin-left: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    color: white;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+#copy-btn:hover {
+    transform: scale(1.05);
+}
+
+/* 검색 기록 박스 */
+#history-container {
+    width: 90%;
+    max-width: 400px;
+    margin: 20px auto;
+    background-color: rgba(255,255,255,0.85);
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#history-list li {
+    padding: 8px 5px;
+    cursor: pointer;
+    color: #ff6f61;
+    font-weight: 500;
+}
+
+#history-list li:hover {
+    text-decoration: underline;
+}
+
+/* 단어 추가 박스 */
+#add-container {
+    width: 90%;
+    max-width: 400px;
+    margin: 20px auto;
+    background-color: rgba(255,255,255,0.9);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#add-container input {
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+#add-container input:focus {
+    border-color: #4facfe;
+}
+
+#add-container button {
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 20px;
+    border: none;
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+#add-container button:hover {
+    transform: scale(1.05);
+}
+
+/* 모바일 반응형 */
+@media (max-width: 500px) {
+    #search-btn, #search-input, #copy-btn, #add-container button, #add-container input {
+        font-size: 15px;
+    }
+
+    #result-container {
+        flex-direction: column;
+    }
+
+    #copy-btn {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+}
