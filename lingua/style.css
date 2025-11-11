@@ -36,3 +36,27 @@ header {
     margin-top: 20px;
     font-size: 18px;
 }
+
+#history-container {
+    width: 300px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+#history-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#history-list li {
+    padding: 5px 0;
+    cursor: pointer;
+    color: #27a300;
+}
+
+#history-list li:hover {
+    text-decoration: underline;
+}
