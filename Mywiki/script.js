@@ -11,5 +11,9 @@ document.getElementById("searchBtn").addEventListener("click", function() {
   }
 });
 
+document.getElementById("searchInput").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") document.getElementById("searchBtn").click();
+});
+
 // 초기 문서 표시
 WikiSetting.loadDocument("첫문서");
