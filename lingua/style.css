@@ -60,3 +60,16 @@ header {
 #history-list li:hover {
     text-decoration: underline;
 }
+
+#result-container {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+#copy-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
