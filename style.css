@@ -1,79 +1,87 @@
-/* 기본 바디 스타일 */
+/* 기본 바디 스타일 (Noto Sans SC 우선 적용) */
 body {
-    font-family: 'Nanum Gothic', 'Noto Sans KR', sans-serif;
-    line-height: 1.6;
-    background-color: #fdf6e3;
-    color: #333;
-    margin: 20px;
-}
-
-/* Noto Sans SC용 클래스 */
-.noto-sans-sc-<uniquifier> {
-    font-family: "Noto Sans SC", sans-serif;
-    font-optical-sizing: auto;
-    font-weight: <weight>; /* 예: 400, 500, 700 */
-    font-style: normal;
+    font-family: "Noto Sans SC", 'Nanum Gothic', 'Noto Sans KR', sans-serif;
+    line-height: 1.6;
+    background-color: #fdf6e3;
+    color: #333;
+    margin: 20px;
+    font-optical-sizing: auto;
 }
 
 /* 제목 스타일 */
+h1, h2 {
+    font-family: "Noto Sans SC", sans-serif;
+    font-style: normal;
+}
+
 h1 {
-    color: #2a5d84;
-    margin-top: 30px;
-    margin-bottom: 20px;
+    color: #2a5d84;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    font-weight: 700; /* 굵기 조절 가능 */
 }
 
 h2 {
-    color: #4a4a4a;
-    margin-top: 20px;
+    color: #4a4a4a;
+    margin-top: 20px;
+    font-weight: 600; /* 굵기 조절 가능 */
 }
 
 /* 단락 스타일 */
 p {
-    margin-bottom: 15px;
+    margin-bottom: 15px;
+    font-family: "Noto Sans SC", sans-serif;
+    font-weight: 400; /* 일반 본문 굵기 */
 }
 
 /* 이미지 스타일 */
 img {
-    display: block;
-    margin: 10px 0;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    max-width: 100%;
-    height: auto;
+    display: block;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    max-width: 100%;
+    height: auto;
 }
 
 /* figure와 figcaption */
 figure {
-    margin: 20px 0;
-    text-align: center;
+    margin: 20px 0;
+    text-align: center;
 }
 
 figcaption {
-    font-size: 0.9em;
-    color: #555;
-    margin-top: 5px;
-    font-style: italic;
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 5px;
+    font-style: italic;
+    font-family: "Noto Sans SC", sans-serif;
+    font-weight: 400;
 }
 
 /* 각주 */
 sup a {
-    text-decoration: none;
-    color: #2a5d84;
+    text-decoration: none;
+    color: #2a5d84;
+    font-family: "Noto Sans SC", sans-serif;
 }
 
+/* 삭제선 */
 del {
-    color: #b00;
+    color: #b00;
+    font-family: "Noto Sans SC", sans-serif;
 }
 
 /* 링크 스타일 */
 a {
-    color: #2a5d84;
-    text-decoration: underline;
+    color: #2a5d84;
+    text-decoration: underline;
+    font-family: "Noto Sans SC", sans-serif;
 }
 
 /* 반응형 */
 @media screen and (max-width: 768px) {
-    img {
-        width: 90% !important;
-    }
+    img {
+        width: 90% !important;
+    }
 }
