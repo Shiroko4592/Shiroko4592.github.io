@@ -11,6 +11,11 @@ body {
 .half-width { width: 50%; }
 .third-width { width: 33%; }
 
+sup a:hover {
+    text-decoration: none;
+    color: #1a3d5a;
+}
+
 /* 제목 스타일 */
 h1, h2 {
     font-family: "Noto Sans SC", sans-serif;
