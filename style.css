@@ -1,45 +1,30 @@
-/* 기본 바디 스타일 (Noto Sans SC 우선 적용) */
+/* 기본 바디 스타일 */
 body {
     font-family: "Noto Sans SC", 'Nanum Gothic', 'Noto Sans KR', sans-serif;
     line-height: 1.6;
     background-color: #fdf6e3;
     color: #333;
     margin: 20px;
-    font-optical-sizing: auto;
-}
-
-.half-width { width: 50%; }
-.third-width { width: 33%; }
-
-sup a:hover {
-    text-decoration: none;
-    color: #1a3d5a;
 }
 
 /* 제목 스타일 */
-h1, h2 {
-    font-family: "Noto Sans SC", sans-serif;
-    font-style: normal;
-}
-
 h1 {
     color: #2a5d84;
     margin-top: 30px;
     margin-bottom: 20px;
-    font-weight: 700; /* 굵기 조절 가능 */
+    font-weight: 700;
 }
 
 h2 {
     color: #4a4a4a;
     margin-top: 20px;
-    font-weight: 600; /* 굵기 조절 가능 */
+    font-weight: 600;
 }
 
 /* 단락 스타일 */
 p {
     margin-bottom: 15px;
-    font-family: "Noto Sans SC", sans-serif;
-    font-weight: 400; /* 일반 본문 굵기 */
+    font-weight: 400;
 }
 
 /* 이미지 스타일 */
@@ -50,7 +35,12 @@ img {
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     max-width: 100%;
     height: auto;
+    cursor: zoom-in;
+    transition: transform 0.3s ease;
 }
+
+.img-half { width: 50%; }
+.img-third { width: 33%; }
 
 /* figure와 figcaption */
 figure {
@@ -59,37 +49,37 @@ figure {
 }
 
 figcaption {
-    font-size: 0.9em;
-    color: #555;
+    font-size: 0.95em;
+    color: #444;
     margin-top: 5px;
     font-style: italic;
-    font-family: "Noto Sans SC", sans-serif;
-    font-weight: 400;
 }
 
 /* 각주 */
 sup a {
     text-decoration: none;
     color: #2a5d84;
-    font-family: "Noto Sans SC", sans-serif;
+    transition: color 0.2s;
+}
+
+sup a:hover {
+    color: #1a3d5a;
 }
 
 /* 삭제선 */
 del {
     color: #b00;
-    font-family: "Noto Sans SC", sans-serif;
 }
 
 /* 링크 스타일 */
 a {
     color: #2a5d84;
     text-decoration: underline;
-    font-family: "Noto Sans SC", sans-serif;
 }
 
 /* 반응형 */
 @media screen and (max-width: 768px) {
-    img {
+    .img-half, .img-third {
         width: 90% !important;
     }
 }
