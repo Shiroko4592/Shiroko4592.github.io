@@ -1,20 +1,16 @@
-// 간단한 이미지 클릭 확대 기능
 document.addEventListener("DOMContentLoaded", function() {
     const images = document.querySelectorAll("img");
     images.forEach(img => {
-        img.style.cursor = "zoom-in";
         img.addEventListener("click", function() {
-            if (img.style.transform === "scale(2)") {
+            const scale = window.innerWidth < 768 ? 1.5 : 2; // 모바일 대응
+            if (img.style.transform === `scale(${scale})`) {
                 img.style.transform = "scale(1)";
-                img.style.transition = "transform 0.3s ease";
             } else {
-                img.style.transform = "scale(2)";
-                img.style.transition = "transform 0.3s ease";
+                img.style.transform = `scale(${scale})`;
             }
         });
     });
 
-    // 각주 클릭 시 부드럽게 스크롤 이동
     const footnoteLinks = document.querySelectorAll("sup a");
     footnoteLinks.forEach(link => {
         link.addEventListener("click", function(e) {
