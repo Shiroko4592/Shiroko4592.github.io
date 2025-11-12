@@ -8,6 +8,9 @@ body {
     font-optical-sizing: auto;
 }
 
+.half-width { width: 50%; }
+.third-width { width: 33%; }
+
 /* 제목 스타일 */
 h1, h2 {
     font-family: "Noto Sans SC", sans-serif;
