@@ -1,3 +1,37 @@
+// ===== Signup: real-time auto-generated password =====
+(function () {
+  const phoneEl = document.getElementById('signup-phone');
+  const pwEl = document.getElementById('signup-password');
+  const regenBtn = document.getElementById('pw-regen');
+  if (!phoneEl || !pwEl) return;
+
+  const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
+  function generatePassword(len) {
+    len = len || 12;
+    const arr = new Uint8Array(len);
+    (window.crypto || window.msCrypto).getRandomValues(arr);
+    let out = '';
+    for (let i = 0; i < len; i++) out += ALPHABET[arr[i] % ALPHABET.length];
+    return out;
+  }
+
+  function isLikelyValidPhone(v) {
+    return /^\+[1-9]\d{7,14}$/.test(v.replace(/[\s\-().]/g, ''));
+  }
+
+  function refresh() {
+    if (isLikelyValidPhone(phoneEl.value)) {
+      if (!pwEl.value) pwEl.value = generatePassword(12);
+    } else {
+      pwEl.value = '';
+    }
+  }
+  phoneEl.addEventListener('input', refresh);
+  if (regenBtn) regenBtn.addEventListener('click', () => { pwEl.value = generatePassword(12); pwEl.focus(); pwEl.select(); });
+  pwEl.addEventListener('focus', () => pwEl.select());
+  refresh();
+})();
+
 (function () {
   // Editor: tabs + live preview + toolbar
   const form = document.getElementById('editor-form');

@@ -1,0 +1,20 @@
+{
+  "users": {
+    "+821099887766": {
+      "phone": "+821099887766",
+      "passwordHash": "0d5f29decd32a51e2a3b7b1e6017ec5e:2801ad4d84227c2a52313717623c682c4cdead51a7842d55d3c0bd2d09dc8b15c5fb4d73ab7ea49dc01993ea9b8385fc523fbcd496113f55f36945e7879087fc",
+      "createdAt": "2026-04-25T02:01:22.540Z"
+    }
+  },
+  "pending": {},
+  "sessions": {
+    "05ce8d9d37976421708a4ada8a34c61a5748b3f521e8256d": {
+      "phone": "+821099887766",
+      "createdAt": 1777082482540
+    },
+    "37a11d395ed782fd4c57b7533ac26ec75d1469a8c1a93674": {
+      "phone": "+821099887766",
+      "createdAt": 1777082518231
+    }
+  }
+}

@@ -3,6 +3,8 @@ const path = require('path');
 
 const namumark = require('./lib/namumark');
 const store = require('./lib/storage');
+const users = require('./lib/users');
+const { sendSms } = require('./lib/sms');
 const { layout, html, raw, escapeHtml, pageUrl, authorLink, isUserPage, USER_NS } = require('./lib/layout');
 const { diffLines } = require('./lib/diff');
 const sections = require('./lib/sections');
@@ -16,7 +18,33 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: false, limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// --- Tiny cookie parser + session middleware ---
+function parseCookies(req) {
+  const out = {};
+  const h = req.headers.cookie;
+  if (!h) return out;
+  h.split(';').forEach((p) => {
+    const idx = p.indexOf('=');
+    if (idx < 0) return;
+    out[p.slice(0, idx).trim()] = decodeURIComponent(p.slice(idx + 1).trim());
+  });
+  return out;
+}
+app.use((req, res, next) => {
+  const cookies = parseCookies(req);
+  req.sid = cookies.sid || null;
+  const sess = users.getSession(req.sid);
+  req.currentUser = sess ? users.findUser(sess.phone) : null;
+  next();
+});
+
 function send(res, body) { res.set('Content-Type', 'text/html; charset=utf-8'); res.send(body); }
+
+function getRequestOrigin(req) {
+  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  return `${proto}://${host}`;
+}
 
 // Replace section-edit placeholders with real URLs
 function fillSectionLinks(html, title) {
@@ -25,7 +53,7 @@ function fillSectionLinks(html, title) {
   );
 }
 
-function notFoundPage(title) {
+function notFoundPage(title, currentUser) {
   const body = html`
     <article class="page">
       <header class="page-header">
@@ -40,7 +68,7 @@ function notFoundPage(title) {
         <p>위의 <a href="/edit/${title}">이 문서 만들기</a> 버튼을 눌러 새 문서를 작성할 수 있습니다.</p>
       </div>
     </article>`;
-  return layout({ title, body, currentTitle: title });
+  return layout({ title, body, currentTitle: title, currentUser });
 }
 
 // Root → frontpage
@@ -52,7 +80,7 @@ app.get('/w/:title', (req, res) => {
   const requestedRev = req.query.rev ? parseInt(req.query.rev, 10) : null;
 
   const page = store.getPage(title);
-  if (!page) return send(res, notFoundPage(title));
+  if (!page) return send(res, notFoundPage(title, req.currentUser));
 
   let rev;
   if (requestedRev) {
@@ -100,7 +128,7 @@ app.get('/w/:title', (req, res) => {
       ${raw(parsed.categoriesHtml || '')}
     </article>`;
 
-  send(res, layout({ title, body, currentTitle: title }));
+  send(res, layout({ title, body, currentTitle: title, currentUser: req.currentUser }));
 });
 
 // Raw text
@@ -218,7 +246,7 @@ app.get('/edit/:title', (req, res) => {
       </details>
     </article>`;
 
-  send(res, layout({ title: isNew ? `${title} 만들기` : `${title} 편집`, body, currentTitle: title, bodyClass: 'mode-edit' }));
+  send(res, layout({ title: isNew ? `${title} 만들기` : `${title} 편집`, body, currentTitle: title, bodyClass: 'mode-edit', currentUser: req.currentUser }));
 });
 
 // Save edit (whole page or single section)
@@ -263,7 +291,7 @@ app.post('/delete/:title', (req, res) => {
 app.get('/history/:title', (req, res) => {
   const title = req.params.title;
   const page = store.getPage(title);
-  if (!page) return send(res, notFoundPage(title));
+  if (!page) return send(res, notFoundPage(title, req.currentUser));
   const revs = store.getRevisions(title).slice().reverse();
 
   const rows = revs.map((r) => html`
@@ -307,7 +335,7 @@ app.get('/history/:title', (req, res) => {
       </form>
     </article>`;
 
-  send(res, layout({ title: title + ' 역사', body, currentTitle: title }));
+  send(res, layout({ title: title + ' 역사', body, currentTitle: title, currentUser: req.currentUser }));
 });
 
 // Diff
@@ -344,7 +372,7 @@ app.get('/diff/:title', (req, res) => {
       <table class="diff-table"><tbody>${raw(rows)}</tbody></table>
     </article>`;
 
-  send(res, layout({ title: title + ' 비교', body, currentTitle: title }));
+  send(res, layout({ title: title + ' 비교', body, currentTitle: title, currentUser: req.currentUser }));
 });
 
 // Recent changes
@@ -370,7 +398,7 @@ app.get('/RecentChanges', (req, res) => {
       </table>
     </article>`;
 
-  send(res, layout({ title: '최근 변경', body }));
+  send(res, layout({ title: '최근 변경', body, currentUser: req.currentUser }));
 });
 
 // Random
@@ -391,7 +419,7 @@ app.get('/AllPages', (req, res) => {
       </header>
       <ul class="page-list">${raw(items)}</ul>
     </article>`;
-  send(res, layout({ title: '모든 문서', body }));
+  send(res, layout({ title: '모든 문서', body, currentUser: req.currentUser }));
 });
 
 // Search
@@ -413,7 +441,7 @@ app.get('/Search', (req, res) => {
       ${q && results.length === 0 ? raw(`<p>일치하는 문서가 없습니다. <a href="/edit/${encodeURIComponent(q)}">"${escapeHtml(q)}" 문서를 만들기</a>.</p>`) : raw('')}
       ${results.length > 0 ? raw(`<p>${results.length}개의 결과</p><ul class="search-results">${items}</ul>`) : raw('')}
     </article>`;
-  send(res, layout({ title: '검색', body }));
+  send(res, layout({ title: '검색', body, currentUser: req.currentUser }));
 });
 
 // Backlinks
@@ -431,7 +459,7 @@ app.get('/Backlink/:title', (req, res) => {
       </header>
       <ul class="page-list">${raw(items)}</ul>
     </article>`;
-  send(res, layout({ title: title + ' 역링크', body, currentTitle: title }));
+  send(res, layout({ title: title + ' 역링크', body, currentTitle: title, currentUser: req.currentUser }));
 });
 
 // Category
@@ -449,7 +477,196 @@ app.get('/Category/:name', (req, res) => {
       <p>이 분류에 속한 문서: ${members.length}개</p>
       <ul class="page-list">${raw(items)}</ul>
     </article>`;
-  send(res, layout({ title: '분류:' + cat, body }));
+  send(res, layout({ title: '분류:' + cat, body, currentUser: req.currentUser }));
+});
+
+// ===== Signup / Login =====
+
+function authPage(opts) {
+  // Shared layout for signup/login pages
+  return layout({
+    title: opts.title,
+    body: opts.body,
+    currentTitle: null,
+    bodyClass: 'auth-page',
+    currentUser: opts.currentUser,
+  });
+}
+
+// Signup form
+app.get('/signup', (req, res) => {
+  if (req.currentUser) return res.redirect('/w/' + encodeURIComponent(USER_NS + req.currentUser.phone));
+  const err = req.query.err ? escapeHtml(String(req.query.err)) : '';
+  const body = html`
+    <article class="auth-card">
+      <h1>회원가입</h1>
+      <p class="muted">전화번호를 <strong>국가번호 포함</strong>으로 입력하세요. (예: <code>+821012345678</code>)<br/>
+        비밀번호는 자동으로 생성되며 <strong>가입 완료 후에는 다시 볼 수 없으니 꼭 저장</strong>하세요.</p>
+      ${err ? raw(`<div class="auth-error">${err}</div>`) : ''}
+      <form method="post" action="/signup" class="auth-form" autocomplete="off">
+        <label class="auth-label">전화번호 (국가번호 포함)</label>
+        <input id="signup-phone" name="phone" type="tel" inputmode="tel"
+          placeholder="+821012345678" required pattern="^\\+[1-9][0-9]{7,14}$" />
+        <div class="auth-hint" id="phone-hint">예: +821012345678 (한국), +14155552671 (미국)</div>
+
+        <label class="auth-label">자동 생성된 비밀번호</label>
+        <div class="pw-row">
+          <input id="signup-password" name="password" type="text" readonly required />
+          <button type="button" id="pw-regen" title="비밀번호 다시 생성">🔄</button>
+        </div>
+        <div class="auth-hint">필드를 클릭해 복사해두세요. 가입 후에는 표시되지 않습니다.</div>
+
+        <button type="submit" class="auth-submit">인증 문자 받기</button>
+      </form>
+      <p class="auth-foot">이미 계정이 있나요? <a href="/login">로그인</a></p>
+    </article>`;
+  send(res, authPage({ title: '회원가입', body, currentUser: req.currentUser }));
+});
+
+// Receive signup → create pending → "send" SMS
+app.post('/signup', (req, res) => {
+  const phone = users.normalizePhone(req.body.phone);
+  const password = String(req.body.password || '');
+
+  if (!users.isValidPhone(phone)) {
+    return res.redirect('/signup?err=' + encodeURIComponent('전화번호 형식이 올바르지 않습니다. 국가번호(+)를 포함한 8~15자리 숫자여야 합니다.'));
+  }
+  if (password.length < 8) {
+    return res.redirect('/signup?err=' + encodeURIComponent('비밀번호가 비어 있거나 너무 짧습니다.'));
+  }
+  if (users.findUser(phone)) {
+    return res.redirect('/signup?err=' + encodeURIComponent('이미 가입된 전화번호입니다.'));
+  }
+
+  const token = users.createPendingSignup(phone, password);
+  const verifyUrl = `${getRequestOrigin(req)}/verify?token=${token}`;
+  // Per spec, the SMS body must be exactly the question. The link follows on a second line
+  // so the recipient can actually act on it.
+  const smsBody = `회원가입하시겠습니까?\n${verifyUrl}`;
+  sendSms(phone, smsBody);
+
+  const body = html`
+    <article class="auth-card">
+      <h1>인증 문자를 보냈습니다</h1>
+      <p><strong>${phone}</strong> 번호로 인증 문자를 발송했습니다.<br/>
+         문자 내용: <em>"회원가입하시겠습니까?"</em></p>
+      <p class="muted">문자에 포함된 링크를 눌러 가입을 완료하세요. 인증 링크는 10분 동안 유효합니다.</p>
+      <div class="dev-note">
+        <strong>개발 모드 안내</strong><br/>
+        실제 SMS 발송에는 외부 서비스 연동이 필요합니다. 현재는 서버 콘솔에 문자 내용이 출력되며,
+        아래 링크로 직접 인증을 진행할 수 있습니다.
+        <p><a class="auth-submit" href="/verify?token=${token}">인증 페이지로 이동</a></p>
+      </div>
+      <p class="auth-foot"><a href="/signup">다른 번호로 다시 시도</a></p>
+    </article>`;
+  send(res, authPage({ title: '인증 대기', body, currentUser: req.currentUser }));
+});
+
+// Verification page — shows the question, awaits confirm click
+app.get('/verify', (req, res) => {
+  const token = String(req.query.token || '');
+  const pending = users.getPendingSignup(token);
+  if (!pending) {
+    const body = html`
+      <article class="auth-card">
+        <h1>유효하지 않은 인증 링크</h1>
+        <p class="muted">인증 링크가 만료되었거나 잘못되었습니다. 다시 가입을 시도해주세요.</p>
+        <p><a class="auth-submit" href="/signup">회원가입으로 돌아가기</a></p>
+      </article>`;
+    return send(res, authPage({ title: '인증 실패', body, currentUser: req.currentUser }));
+  }
+  const body = html`
+    <article class="auth-card">
+      <h1>회원가입하시겠습니까?</h1>
+      <p>전화번호 <strong>${pending.phone}</strong> 로 가입을 완료합니다.</p>
+      <form method="post" action="/verify">
+        <input type="hidden" name="token" value="${token}" />
+        <button type="submit" class="auth-submit">예, 가입할게요</button>
+      </form>
+      <p class="auth-foot"><a href="/signup">아니요, 취소</a></p>
+    </article>`;
+  send(res, authPage({ title: '인증 확인', body, currentUser: req.currentUser }));
+});
+
+// Confirm verification → create user + user document + session
+app.post('/verify', (req, res) => {
+  const token = String(req.body.token || '');
+  const pending = users.consumePendingSignup(token);
+  if (!pending) {
+    return res.redirect('/signup?err=' + encodeURIComponent('인증 링크가 만료되었습니다. 다시 시도해주세요.'));
+  }
+  if (users.findUser(pending.phone)) {
+    return res.redirect('/login?err=' + encodeURIComponent('이미 가입된 전화번호입니다. 로그인해주세요.'));
+  }
+
+  // 1) Create the account
+  users.createUser(pending.phone, pending.passwordHash);
+
+  // 2) Auto-create the 사용자: document
+  const userTitle = USER_NS + pending.phone;
+  if (!store.getPage(userTitle)) {
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+    const content =
+`= ${userTitle} =
+이 문서는 '''${pending.phone}''' 사용자의 사용자 문서입니다.
+
+== 정보 ==
+ * 가입일: ${dateStr}
+ * 전화번호: ${pending.phone}
+
+== 소개 ==
+이 사용자가 자신을 소개하기 위한 공간입니다. [[${userTitle}|편집]]하여 자유롭게 작성해보세요.
+
+[[분류:사용자]]
+`;
+    store.saveRevision(userTitle, content, pending.phone, '사용자 문서 자동 생성', req.ip || '');
+  }
+
+  // 3) Issue a session cookie so they're logged in immediately
+  const sid = users.createSession(pending.phone);
+  res.setHeader('Set-Cookie', `sid=${sid}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`);
+  res.redirect('/w/' + encodeURIComponent(userTitle));
+});
+
+// Login
+app.get('/login', (req, res) => {
+  if (req.currentUser) return res.redirect('/w/' + encodeURIComponent(USER_NS + req.currentUser.phone));
+  const err = req.query.err ? escapeHtml(String(req.query.err)) : '';
+  const body = html`
+    <article class="auth-card">
+      <h1>로그인</h1>
+      ${err ? raw(`<div class="auth-error">${err}</div>`) : ''}
+      <form method="post" action="/login" class="auth-form" autocomplete="off">
+        <label class="auth-label">전화번호 (국가번호 포함)</label>
+        <input name="phone" type="tel" placeholder="+821012345678" required />
+
+        <label class="auth-label">비밀번호</label>
+        <input name="password" type="password" required />
+
+        <button type="submit" class="auth-submit">로그인</button>
+      </form>
+      <p class="auth-foot">계정이 없나요? <a href="/signup">회원가입</a></p>
+    </article>`;
+  send(res, authPage({ title: '로그인', body, currentUser: req.currentUser }));
+});
+
+app.post('/login', (req, res) => {
+  const phone = users.normalizePhone(req.body.phone);
+  const password = String(req.body.password || '');
+  const user = users.findUser(phone);
+  if (!user || !users.verifyPassword(password, user.passwordHash)) {
+    return res.redirect('/login?err=' + encodeURIComponent('전화번호 또는 비밀번호가 올바르지 않습니다.'));
+  }
+  const sid = users.createSession(user.phone);
+  res.setHeader('Set-Cookie', `sid=${sid}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`);
+  res.redirect('/w/' + encodeURIComponent(USER_NS + user.phone));
+});
+
+app.post('/logout', (req, res) => {
+  if (req.sid) users.deleteSession(req.sid);
+  res.setHeader('Set-Cookie', 'sid=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+  res.redirect('/');
 });
 
 // User contributions — list every revision a given author made
@@ -485,7 +702,7 @@ app.get('/Contributions/:user', (req, res) => {
           </table>`)}
     </article>`;
 
-  send(res, layout({ title: user + ' 기여', body, currentTitle: userPage }));
+  send(res, layout({ title: user + ' 기여', body, currentTitle: userPage, currentUser: req.currentUser }));
 });
 
 // User list — every author with edit count, sorted by edits desc
@@ -513,7 +730,7 @@ app.get('/UserList', (req, res) => {
       <p class="muted">이 위키에 한 번이라도 편집한 모든 사용자입니다. 편집 횟수가 많은 순서로 정렬됩니다.</p>
       <ul class="page-list">${raw(items)}</ul>
     </article>`;
-  send(res, layout({ title: '사용자 목록', body }));
+  send(res, layout({ title: '사용자 목록', body, currentUser: req.currentUser }));
 });
 
 // Discuss (basic threaded comments)
@@ -541,7 +758,7 @@ app.get('/discuss/:title', (req, res) => {
         <button type="submit" class="btn btn-primary">의견 작성</button>
       </form>
     </article>`;
-  send(res, layout({ title: title + ' 토론', body, currentTitle: title }));
+  send(res, layout({ title: title + ' 토론', body, currentTitle: title, currentUser: req.currentUser }));
 });
 
 app.post('/discuss/:title', (req, res) => {
@@ -566,6 +783,7 @@ app.use((req, res) => {
   res.status(404).type('text/html; charset=utf-8').send(layout({
     title: '404',
     body: '<article class="page"><h1 class="page-title">404 — 페이지를 찾을 수 없습니다</h1><p><a href="/">대문으로 돌아가기</a></p></article>',
+    currentUser: req.currentUser,
   }));
 });
 
