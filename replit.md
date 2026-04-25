@@ -7,8 +7,10 @@ A theseed/namuwiki-style Korean wiki engine. Server-side-rendered Express + namu
 - **Runtime:** Node.js 20
 - **Server:** Express 4 (server-side rendered)
 - **Markup:** Custom namu-mark (나무마크) parser in `lib/namumark.js`
-- **Storage:** JSON file at `data/wiki.json` (auto-seeded on first run; gitignored)
-- **Frontend assets:** `public/style.css` (light/blue theme), `public/wiki.js` (editor tabs + live preview)
+- **Storage:** JSON file at `data/wiki.json` (auto-seeded on first run; gitignored), accounts at `data/users.json`, uploaded images at `data/uploads/`
+- **Auth:** phone-based signup (SMS console-stub) + cookie sessions in `lib/users.js`
+- **Uploads:** `lib/uploads.js` (multer, 8 MB cap, image MIME only)
+- **Frontend assets:** `public/style.css` (light/blue theme), `public/wiki.js` (editor tabs + live preview + upload + copy)
 
 ## Project Layout
 
@@ -16,14 +18,19 @@ A theseed/namuwiki-style Korean wiki engine. Server-side-rendered Express + namu
 server.js          # All Express routes (SSR)
 lib/
   namumark.js      # Namu-mark parser (headings, lists, tables, links, emphasis, code, footnotes, categories…)
-  storage.js       # JSON storage + page/revision/discussion APIs + initial seed
-  layout.js        # `html` template tag, escapeHtml/raw helpers, page shell
+  storage.js       # JSON storage + page/revision/discussion APIs + initial seed + move/block
+  users.js         # phone-keyed accounts, scrypt password hashing, sessions, displayName + renameDisplayName
+  uploads.js       # multer-backed image upload (8 MB, jpg/png/gif/webp/svg)
+  sms.js           # SMS sender stub (logs to server console)
+  layout.js        # `html` template tag, escapeHtml/raw helpers, page shell + topnav (uses displayName)
   diff.js          # LCS-based line diff for the diff viewer
 public/
   style.css        # Theme
   wiki.js          # Editor tab switching + live preview fetch
 data/
-  wiki.json        # { pages, revisions, discussions } (gitignored, seeded on first start)
+  wiki.json        # { pages, revisions, discussions, blocked } (gitignored, seeded on first start)
+  users.json       # { users, sessions, pendingSignups } (gitignored)
+  uploads/         # uploaded image files, served at /uploads/* (gitignored)
 package.json       # `npm start` -> node server.js
 ```
 
@@ -36,7 +43,14 @@ package.json       # `npm start` -> node server.js
 - `/history/:title` — revision history with one-click revert
 - `/revert/:title` (POST) — copy a previous revision's content as a new revision
 - `/diff/:title?from=&to=` — side-by-side line diff
-- `/RecentChanges`, `/RandomPage`, `/AllPages`, `/Search?q=`
+- `/RecentChanges` (UI label: "편집 내역"), `/RandomPage`, `/AllPages`, `/Search?q=`
+- `/Upload` (GET form + listing, POST form fallback), `/api/upload` (POST multipart, JSON response)
+- `/uploads/*` (static, served from `data/uploads/`)
+- `/move/:title` (GET/POST) — rename a page; optional "block old title" checkbox.
+  When the moved page is in the `사용자:` namespace, all revision/discussion authors
+  matching the old name are rewritten to the new name and the user account's
+  `displayName` is updated, so the topnav and 편집 내역 immediately show the new name.
+- `/signup`, `/verify`, `/login`, `/logout`, `/Contributions/:user`, `/UserList`
 - `/Backlink/:title`, `/Category/:name`
 - `/discuss/:title` (GET/POST) — discussion threads
 - `/delete/:title` (POST) — page deletion
@@ -59,7 +73,8 @@ package.json       # `npm start` -> node server.js
 
 ## Editor features
 
-- Toolbar with quick-insert buttons (bold/italic/underline/strike, heading, internal/external link, image, lists, table, quote, code block, hr, TOC, footnote, category)
+- Toolbar with quick-insert buttons (bold/italic/underline/strike, heading, internal/external link, image, **📤 image upload**, video, lists, table, quote, code block, hr, TOC, footnote, category)
+- 📤 button picks an image, posts to `/api/upload`, and inserts `[[파일:URL]]` at the cursor (with a "업로드 중..." placeholder while the request is in flight)
 - Tab-based live preview (uses `/api/preview`)
 - Keyboard shortcuts: Ctrl/Cmd+B/I/U/K, Ctrl/Cmd+Enter to save
 - Section-only editing pre-fills the comment with `/* 섹션 제목 */`

@@ -5,7 +5,7 @@ const namumark = require('./lib/namumark');
 const store = require('./lib/storage');
 const users = require('./lib/users');
 const { sendSms } = require('./lib/sms');
-const { upload, UPLOAD_DIR, listUploads, formatBytes } = require('./lib/uploads');
+const { upload, UPLOAD_DIR, listUploads, formatBytes, describeUploadError } = require('./lib/uploads');
 const { layout, html, raw, escapeHtml, pageUrl, authorLink, isUserPage, USER_NS } = require('./lib/layout');
 const { diffLines } = require('./lib/diff');
 const sections = require('./lib/sections');
@@ -520,7 +520,7 @@ app.get('/Category/:name', (req, res) => {
 app.post('/api/upload', (req, res) => {
   if (!req.currentUser) return res.status(401).json({ error: '파일을 올리려면 로그인이 필요합니다.' });
   upload.single('file')(req, res, (err) => {
-    if (err) return res.status(400).json({ error: err.message });
+    if (err) return res.status(400).json({ error: describeUploadError(err) });
     if (!req.file) return res.status(400).json({ error: '파일이 없습니다.' });
     res.json({
       ok: true,
@@ -537,7 +537,7 @@ app.post('/api/upload', (req, res) => {
 app.post('/Upload', (req, res) => {
   if (!req.currentUser) return res.redirect('/login?err=' + encodeURIComponent('파일을 올리려면 로그인이 필요합니다.'));
   upload.single('file')(req, res, (err) => {
-    if (err) return res.redirect('/Upload?err=' + encodeURIComponent(err.message));
+    if (err) return res.redirect('/Upload?err=' + encodeURIComponent(describeUploadError(err)));
     if (!req.file) return res.redirect('/Upload?err=' + encodeURIComponent('파일이 없습니다.'));
     res.redirect('/Upload?ok=' + encodeURIComponent('/uploads/' + req.file.filename));
   });

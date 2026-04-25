@@ -10,6 +10,17 @@
       "phone": "+821075127313",
       "passwordHash": "b0c74fdd73c8da08f71bf6e482b0d825:8d5109acd68e86de2b353092004b6e3ebf4714158d846ce36c4bf5521b1bdd81ffb88baa45993895dfd35a1a021c77d4ffebc2e6a840d4680bdee9efdc24b307",
       "createdAt": "2026-04-25T02:15:43.660Z"
+    },
+    "+821044443333": {
+      "phone": "+821044443333",
+      "passwordHash": "9f58d1dc60318d0611e1e86d44342e57:3df67ac2bd6d79a95149034b8a4256f2a77fbae9f5cef7bebe299fdaee0358027ab0675274d1708f133bbeed2ab1d14cea26dfb6f92033e4a231fd5f1d427481",
+      "createdAt": "2026-04-25T02:18:57.879Z"
+    },
+    "+821088889999": {
+      "phone": "+821088889999",
+      "passwordHash": "e25fd7e8932260b372873758a43ae554:70eeaf6df702d44b7f05216328717c6007067b9883770be380000ddbae4d3d8eebcfe1282c97322da8b29ebe165710401e762e2232c1b377a644bb244010df92",
+      "createdAt": "2026-04-25T02:19:31.762Z",
+      "displayName": "테스트닉"
     }
   },
   "pending": {
@@ -32,6 +43,14 @@
     "84fe81b436d6c3df4681bb0406ec169aa50018bf9e8a00f0": {
       "phone": "+821075127313",
       "createdAt": 1777083343661
+    },
+    "0b0cdf1aa063c7d8e012d0debee7473f8b248c97cc88750c": {
+      "phone": "+821044443333",
+      "createdAt": 1777083537880
+    },
+    "c125667916eaa764a9d30b98ab271f77db2e9c74670e7d43": {
+      "phone": "+821088889999",
+      "createdAt": 1777083571763
     }
   }
 }
