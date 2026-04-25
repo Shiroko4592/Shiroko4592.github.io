@@ -33,6 +33,28 @@
 })();
 
 (function () {
+  // Copy-to-clipboard buttons (used by /Upload listing)
+  document.addEventListener('click', (e) => {
+    const cb = e.target.closest('.copy-btn[data-copy]');
+    if (!cb) return;
+    e.preventDefault();
+    const text = cb.dataset.copy;
+    const finish = (ok) => {
+      const orig = cb.textContent;
+      cb.classList.toggle('copied', ok);
+      cb.textContent = ok ? '복사됨' : '실패';
+      setTimeout(() => { cb.textContent = orig; cb.classList.remove('copied'); }, 1200);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => finish(true), () => finish(false));
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); finish(true); } catch { finish(false); }
+      ta.remove();
+    }
+  });
+
   // Editor: tabs + live preview + toolbar
   const form = document.getElementById('editor-form');
   if (!form) return;
@@ -209,6 +231,46 @@
     replaceSel('[[분류:이름]]', 5, 5 + 2);
   }
 
+  // 📤 Upload an image file via /api/upload, then insert [[파일:URL]] at cursor.
+  function insertUpload() {
+    const picker = document.createElement('input');
+    picker.type = 'file';
+    picker.accept = 'image/*';
+    picker.style.display = 'none';
+    document.body.appendChild(picker);
+    picker.addEventListener('change', async () => {
+      const file = picker.files && picker.files[0];
+      picker.remove();
+      if (!file) return;
+      const fd = new FormData();
+      fd.append('file', file);
+      const placeholder = `[[파일:업로드 중...|${file.name}]]`;
+      replaceSel(placeholder);
+      try {
+        const r = await fetch('/api/upload', { method: 'POST', body: fd });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok || !data.url) throw new Error(data.error || ('업로드 실패 (HTTP ' + r.status + ')'));
+        // Replace the placeholder with the real syntax
+        const cur = ta.value;
+        const idx = cur.indexOf(placeholder);
+        if (idx >= 0) {
+          ta.value = cur.slice(0, idx) + `[[파일:${data.url}]]` + cur.slice(idx + placeholder.length);
+          ta.dispatchEvent(new Event('input', { bubbles: true }));
+          ta.focus();
+        }
+      } catch (err) {
+        const cur = ta.value;
+        const idx = cur.indexOf(placeholder);
+        if (idx >= 0) {
+          ta.value = cur.slice(0, idx) + cur.slice(idx + placeholder.length);
+          ta.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        alert('업로드 실패: ' + err.message);
+      }
+    });
+    picker.click();
+  }
+
   if (toolbar) {
     toolbar.addEventListener('click', (e) => {
       const btn = e.target.closest('button[data-insert]');
@@ -234,6 +296,7 @@
         case 'toc': insertToc(); break;
         case 'footnote': insertFootnote(); break;
         case 'cat': insertCategory(); break;
+        case 'upload': insertUpload(); break;
       }
     });
   }

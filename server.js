@@ -5,6 +5,7 @@ const namumark = require('./lib/namumark');
 const store = require('./lib/storage');
 const users = require('./lib/users');
 const { sendSms } = require('./lib/sms');
+const { upload, UPLOAD_DIR, listUploads, formatBytes } = require('./lib/uploads');
 const { layout, html, raw, escapeHtml, pageUrl, authorLink, isUserPage, USER_NS } = require('./lib/layout');
 const { diffLines } = require('./lib/diff');
 const sections = require('./lib/sections');
@@ -17,6 +18,11 @@ app.set('trust proxy', true);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: false, limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(UPLOAD_DIR, {
+  maxAge: '7d',
+  index: false,
+  fallthrough: true,
+}));
 
 // --- Tiny cookie parser + session middleware ---
 function parseCookies(req) {
@@ -223,6 +229,7 @@ app.get('/edit/:title', (req, res) => {
           <button type="button" data-insert="link" title="내부 링크 (Ctrl+K)">🔗</button>
           <button type="button" data-insert="extlink" title="외부 링크">↗</button>
           <button type="button" data-insert="img" title="이미지">🖼</button>
+          <button type="button" data-insert="upload" title="이미지 올리기 (파일 선택 후 자동 삽입)">📤</button>
           <button type="button" data-insert="video" title="동영상 (유튜브 / 니코니코 / 빌리빌리 / 틱톡 / 비메오)">🎬</button>
           <span class="tb-sep"></span>
           <button type="button" data-insert="ul" title="목록">•</button>
@@ -417,7 +424,7 @@ app.get('/RecentChanges', (req, res) => {
   const body = html`
     <article class="page">
       <header class="page-header">
-        <h1 class="page-title">최근 변경</h1>
+        <h1 class="page-title">편집 내역</h1>
       </header>
       <table class="changes-table">
         <thead><tr><th>시각</th><th>문서</th><th>작성자</th><th>변화량</th><th>요약</th></tr></thead>
@@ -425,7 +432,7 @@ app.get('/RecentChanges', (req, res) => {
       </table>
     </article>`;
 
-  send(res, layout({ title: '최근 변경', body, currentUser: req.currentUser }));
+  send(res, layout({ title: '편집 내역', body, currentUser: req.currentUser }));
 });
 
 // Random
@@ -507,6 +514,82 @@ app.get('/Category/:name', (req, res) => {
   send(res, layout({ title: '분류:' + cat, body, currentUser: req.currentUser }));
 });
 
+// ===== File upload (이미지 올리기) =====
+
+// AJAX endpoint used by the editor's upload button
+app.post('/api/upload', (req, res) => {
+  if (!req.currentUser) return res.status(401).json({ error: '파일을 올리려면 로그인이 필요합니다.' });
+  upload.single('file')(req, res, (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    if (!req.file) return res.status(400).json({ error: '파일이 없습니다.' });
+    res.json({
+      ok: true,
+      url: '/uploads/' + req.file.filename,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size,
+      mime: req.file.mimetype,
+    });
+  });
+});
+
+// HTML form fallback (no JS) — also serves as the listing page
+app.post('/Upload', (req, res) => {
+  if (!req.currentUser) return res.redirect('/login?err=' + encodeURIComponent('파일을 올리려면 로그인이 필요합니다.'));
+  upload.single('file')(req, res, (err) => {
+    if (err) return res.redirect('/Upload?err=' + encodeURIComponent(err.message));
+    if (!req.file) return res.redirect('/Upload?err=' + encodeURIComponent('파일이 없습니다.'));
+    res.redirect('/Upload?ok=' + encodeURIComponent('/uploads/' + req.file.filename));
+  });
+});
+
+app.get('/Upload', (req, res) => {
+  const err = req.query.err ? escapeHtml(String(req.query.err)) : '';
+  const ok = req.query.ok ? escapeHtml(String(req.query.ok)) : '';
+  const list = listUploads().slice(0, 60);
+  const items = list.length === 0
+    ? '<p class="muted">아직 업로드된 파일이 없습니다.</p>'
+    : list.map((f) => `
+      <div class="upload-item">
+        <a class="upload-thumb" href="${escapeHtml(f.url)}" target="_blank" rel="noopener">
+          <img src="${escapeHtml(f.url)}" alt="${escapeHtml(f.name)}" loading="lazy" />
+        </a>
+        <div class="upload-info">
+          <div class="upload-name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</div>
+          <div class="upload-meta">${formatBytes(f.size)} · ${new Date(f.uploadedAt).toLocaleString('ko-KR')}</div>
+          <div class="upload-syntax">
+            <code>[[파일:${escapeHtml(f.url)}]]</code>
+            <button type="button" class="copy-btn" data-copy="[[파일:${escapeHtml(f.url)}]]">복사</button>
+          </div>
+        </div>
+      </div>`).join('');
+
+  const body = html`
+    <article class="page">
+      <header class="page-header">
+        <h1 class="page-title">파일 올리기</h1>
+      </header>
+      ${err ? raw(`<div class="auth-error">${err}</div>`) : ''}
+      ${ok ? raw(`<div class="upload-ok">업로드 완료! 위키에서 사용하려면: <code>[[파일:${ok}]]</code> · <a href="${ok}" target="_blank">새 탭으로 열기</a></div>`) : ''}
+
+      ${req.currentUser
+        ? raw(`<form method="post" action="/Upload" enctype="multipart/form-data" class="upload-form">
+            <label class="auth-label">이미지 선택 (jpg, png, gif, webp, svg · 최대 8 MB)</label>
+            <input type="file" name="file" accept="image/*" required />
+            <button type="submit" class="auth-submit" style="margin-top:10px;">업로드</button>
+          </form>`)
+        : raw(`<div class="auth-error">파일을 올리려면 <a href="/login">로그인</a>이 필요합니다.</div>`)}
+
+      <h2 style="margin-top:28px;">최근 업로드</h2>
+      <div class="upload-grid">${raw(items)}</div>
+      <p class="muted" style="margin-top:18px;">
+        업로드한 이미지는 <code>[[파일:/uploads/...]]</code> 문법으로 어떤 문서에서든 사용할 수 있습니다.
+        편집기 툴바의 <strong>📤</strong> 버튼을 누르면 그 자리에 바로 업로드해 삽입할 수 있습니다.
+      </p>
+    </article>`;
+  send(res, layout({ title: '파일 올리기', body, currentUser: req.currentUser }));
+});
+
 // ===== Move (rename) page =====
 
 app.get('/move/:title', (req, res) => {
@@ -556,7 +639,9 @@ app.post('/move/:title', (req, res) => {
   const newTitle = String(req.body.newTitle || '').trim();
   const block = req.body.block === '1' || req.body.block === 'on';
   try {
-    store.movePage(oldTitle, newTitle, req.currentUser.phone, req.ip || '');
+    store.movePage(oldTitle, newTitle, req.currentUser.phone, req.ip || '', {
+      onUserRename: (oldName, newName) => users.renameDisplayName(oldName, newName),
+    });
     if (block) {
       store.blockPage(oldTitle, {
         reason: '문서 이동에 따라 차단됨',

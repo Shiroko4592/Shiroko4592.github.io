@@ -6,3 +6,5 @@ yarn-error.log*
 .env.local
 data/pages.json
 data/wiki.json
+data/users.json
+data/uploads/
