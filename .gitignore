@@ -5,3 +5,4 @@ yarn-error.log*
 .env
 .env.local
 data/pages.json
+data/wiki.json
