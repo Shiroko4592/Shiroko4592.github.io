@@ -40,6 +40,31 @@ app.use((req, res, next) => {
 
 function send(res, body) { res.set('Content-Type', 'text/html; charset=utf-8'); res.send(body); }
 
+// --- Block guard: 403 for any title-bearing route on a blocked page ---
+const TITLE_ROUTE_RE = /^\/(?:w|edit|history|raw|discuss|Backlink|Contributions|move|diff)\/([^/?#]+)/;
+app.use((req, res, next) => {
+  const m = req.path.match(TITLE_ROUTE_RE);
+  if (!m) return next();
+  let title;
+  try { title = decodeURIComponent(m[1]); } catch { return next(); }
+  if (!store.isBlocked(title)) return next();
+  res.status(403);
+  const info = store.getBlockInfo(title) || {};
+  const body = html`
+    <article class="page">
+      <header class="page-header">
+        <h1 class="page-title">접근이 차단된 문서</h1>
+      </header>
+      <div class="wiki-content">
+        <p><strong>${title}</strong> 문서는 접근이 금지되어 있습니다.</p>
+        ${info.reason ? raw(`<p class="muted">사유: ${escapeHtml(info.reason)}</p>`) : ''}
+        ${info.at ? raw(`<p class="muted">차단 시각: ${new Date(info.at).toLocaleString('ko-KR')}</p>`) : ''}
+        <p><a href="/">대문으로 돌아가기</a></p>
+      </div>
+    </article>`;
+  send(res, layout({ title: '접근 차단', body, currentUser: req.currentUser }));
+});
+
 function getRequestOrigin(req) {
   const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
   const host = req.headers['x-forwarded-host'] || req.headers.host;
@@ -113,6 +138,7 @@ app.get('/w/:title', (req, res) => {
         <h1 class="page-title">${title}</h1>
         <nav class="page-actions">
           <a href="/edit/${title}">편집</a>
+          <a href="/move/${title}">이동</a>
           <a href="/history/${title}">역사</a>
           <a href="/discuss/${title}">토론</a>
         </nav>
@@ -176,6 +202,7 @@ app.get('/edit/:title', (req, res) => {
       <header class="page-header">
         <h1 class="page-title">${titleLabel}</h1>
         <nav class="page-actions">
+          ${page ? raw(html`<a href="/move/${title}">이동</a>`) : ''}
           <a href="/w/${title}">취소</a>
         </nav>
       </header>
@@ -478,6 +505,72 @@ app.get('/Category/:name', (req, res) => {
       <ul class="page-list">${raw(items)}</ul>
     </article>`;
   send(res, layout({ title: '분류:' + cat, body, currentUser: req.currentUser }));
+});
+
+// ===== Move (rename) page =====
+
+app.get('/move/:title', (req, res) => {
+  if (!req.currentUser) {
+    return res.redirect('/login?err=' + encodeURIComponent('문서 이동은 로그인이 필요합니다.'));
+  }
+  const title = req.params.title;
+  const page = store.getPage(title);
+  if (!page) return send(res, notFoundPage(title, req.currentUser));
+
+  const err = req.query.err ? escapeHtml(String(req.query.err)) : '';
+  const body = html`
+    <article class="page">
+      <header class="page-header">
+        <h1 class="page-title">${title} 이동</h1>
+        <nav class="page-actions">
+          <a href="/w/${title}">취소</a>
+        </nav>
+      </header>
+      ${err ? raw(`<div class="auth-error">${err}</div>`) : ''}
+      <div class="wiki-content">
+        <p>현재 제목: <strong>${title}</strong></p>
+        <p class="muted">문서를 새 제목으로 이동(이름 변경)합니다. 모든 편집 역사와 토론이 새 제목으로 함께 옮겨집니다.</p>
+        <form method="post" action="/move/${title}" class="auth-form" autocomplete="off" style="max-width:560px;">
+          <label class="auth-label">새 제목</label>
+          <input name="newTitle" type="text" required maxlength="200" placeholder="새 문서 제목" value="${req.query.to ? escapeHtml(String(req.query.to)) : ''}" />
+          <div class="auth-hint">이미 존재하는 제목으로는 이동할 수 없습니다.</div>
+
+          <label class="auth-label" style="margin-top:14px;">
+            <input type="checkbox" name="block" value="1" />
+            원래 제목(<code>${title}</code>)에 대한 접근을 차단합니다
+          </label>
+          <div class="auth-hint">체크하면 이전 제목으로 접근할 수 없게 됩니다.</div>
+
+          <button type="submit" class="auth-submit" style="margin-top:14px;">이동하기</button>
+        </form>
+      </div>
+    </article>`;
+  send(res, layout({ title: title + ' 이동', body, currentTitle: title, currentUser: req.currentUser }));
+});
+
+app.post('/move/:title', (req, res) => {
+  if (!req.currentUser) {
+    return res.redirect('/login?err=' + encodeURIComponent('문서 이동은 로그인이 필요합니다.'));
+  }
+  const oldTitle = req.params.title;
+  const newTitle = String(req.body.newTitle || '').trim();
+  const block = req.body.block === '1' || req.body.block === 'on';
+  try {
+    store.movePage(oldTitle, newTitle, req.currentUser.phone, req.ip || '');
+    if (block) {
+      store.blockPage(oldTitle, {
+        reason: '문서 이동에 따라 차단됨',
+        movedTo: newTitle,
+        by: req.currentUser.phone,
+      });
+    }
+    res.redirect('/w/' + encodeURIComponent(newTitle));
+  } catch (e) {
+    const url = '/move/' + encodeURIComponent(oldTitle) +
+      '?err=' + encodeURIComponent(e.message) +
+      '&to=' + encodeURIComponent(newTitle);
+    res.redirect(url);
+  }
 });
 
 // ===== Signup / Login =====
