@@ -52,6 +52,7 @@ package.json       # `npm start` -> node server.js
 - Folding blocks `{{{#!folding 제목 ... }}}` → `<details>`
 - Links: `[[Page]]`, `[[Page|Label]]`, `[[Page#anchor]]`, `[[#anchor]]`, `[[https://…|label]]`, bare URL auto-link
 - Images `[[파일:URL|width=400,align=center,alt=...]]`
+- Video embeds: `[[유튜브:VIDEO_ID]]`, `[[니코니코:sm9]]`, `[[빌리빌리:BV...]]` / `[[빌리빌리:av170001]]`, `[[틱톡:VIDEO_ID]]`, `[[비메오:VIDEO_ID]]`. English aliases (`youtube`, `nicovideo`, `bilibili`, `tiktok`, `vimeo`) and a generic auto-detect (`[[동영상:URL]]` / `[[video:URL]]`) are also accepted. Accepts both bare IDs and full URLs. Same `width=`, `height=`, `align=` options as images.
 - Lists (nested `*`, `1.`), tables `|| … ||` with `<:>`, `<(>`, `<)>`, `<-N>` (colspan), `<|N>` (rowspan), `<#color>` (bg)
 - Blockquotes `>`, horizontal rules `----` (4+ dashes)
 - Footnotes `[* …]`, categories `[[분류:Name]]`, indented lines

@@ -154,6 +154,7 @@ app.get('/edit/:title', (req, res) => {
           <button type="button" data-insert="link" title="내부 링크 (Ctrl+K)">🔗</button>
           <button type="button" data-insert="extlink" title="외부 링크">↗</button>
           <button type="button" data-insert="img" title="이미지">🖼</button>
+          <button type="button" data-insert="video" title="동영상 (유튜브 / 니코니코 / 빌리빌리 / 틱톡 / 비메오)">🎬</button>
           <span class="tb-sep"></span>
           <button type="button" data-insert="ul" title="목록">•</button>
           <button type="button" data-insert="ol" title="번호 목록">1.</button>
@@ -195,6 +196,7 @@ app.get('/edit/:title', (req, res) => {
         <ul>
           <li><code>== 제목 ==</code> · <code>'''굵게'''</code> · <code>''기울임''</code> · <code>__밑줄__</code> · <code>~~취소선~~</code></li>
           <li><code>[[문서명]]</code> · <code>[[문서명#섹션|표시]]</code> · <code>[[https://...|외부]]</code> · <code>[[파일:URL|width=300]]</code></li>
+          <li><code>[[유튜브:dQw4w9WgXcQ]]</code> · <code>[[니코니코:sm9]]</code> · <code>[[빌리빌리:BV1xx411x7xx]]</code> · <code>[[틱톡:7012345678901234567]]</code> · <code>[[비메오:76979871]]</code></li>
           <li><code>&nbsp;* 항목</code> · <code>&nbsp;1. 항목</code> · <code>||셀||셀||</code></li>
           <li><code>&gt; 인용</code> · <code>----</code> 가로줄 · <code>{{{ ... }}}</code> 코드 블록 · <code>{{{#!folding 제목 ... }}}</code> 접기</li>
           <li><code>{{{#red 색깔}}}</code> · <code>[목차]</code> · <code>[* 각주]</code> · <code>[[분류:이름]]</code></li>

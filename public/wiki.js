@@ -104,6 +104,24 @@
   function insertImg() {
     replaceSel('[[파일:https://example.com/image.png|width=400]]', 5, 5 + 28);
   }
+  function insertVideo() {
+    const sel = getSel();
+    const input = (sel.text || '').trim();
+    let url = input || prompt(
+      '동영상 URL 또는 ID를 입력하세요.\n예: https://www.youtube.com/watch?v=dQw4w9WgXcQ\n     dQw4w9WgXcQ (유튜브 ID)\n     sm9 (니코니코)\n     BV1xx411x7xx (빌리빌리)\n     https://www.tiktok.com/@user/video/7012345678901234567\n     https://vimeo.com/76979871',
+      ''
+    );
+    if (url == null) return;
+    url = url.trim();
+    if (!url) { replaceSel('[[유튜브:VIDEO_ID]]', 6, 6 + 8); return; }
+    let kind = '유튜브';
+    if (/nicovideo\.jp/i.test(url) || /^(?:sm|nm|so)\d+$/i.test(url)) kind = '니코니코';
+    else if (/bilibili\.com/i.test(url) || /^BV[\w]+$/i.test(url) || /^av\d+$/i.test(url)) kind = '빌리빌리';
+    else if (/tiktok\.com/i.test(url)) kind = '틱톡';
+    else if (/vimeo\.com/i.test(url) || (/^\d+$/.test(url) && url.length >= 7 && url.length <= 10)) kind = '비메오';
+    else if (/youtube\.com|youtu\.be/i.test(url) || /^[\w-]{6,}$/.test(url)) kind = '유튜브';
+    replaceSel('[[' + kind + ':' + url + ']]');
+  }
   function insertHeading(level) {
     const eq = '='.repeat(level);
     const sel = getSel();
@@ -172,6 +190,7 @@
         case 'link': insertLink(); break;
         case 'extlink': insertExtLink(); break;
         case 'img': insertImg(); break;
+        case 'video': insertVideo(); break;
         case 'ul': insertList(false); break;
         case 'ol': insertList(true); break;
         case 'table': insertTable(); break;
