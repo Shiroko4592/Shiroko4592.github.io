@@ -546,6 +546,29 @@ a:hover { text-decoration: underline; }
 .wiki-content details.wfold[open] > summary { border-bottom: 1px solid var(--border-soft); }
 .wiki-content details.wfold .wfold-body { padding: 8px 14px; background: #fff; border-radius: 0 0 6px 6px; }
 
+/* === User links / banner === */
+.user-link {
+  color: var(--link);
+  font-weight: 600;
+}
+.user-contrib {
+  color: var(--muted);
+  font-size: 12px;
+  margin-left: 1px;
+}
+.user-contrib:hover { color: var(--link); }
+
+.user-banner {
+  background: #eef6ff;
+  border: 1px solid #b6d4fe;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: #0c4a8a;
+}
+.user-banner a { color: var(--primary); font-weight: 600; }
+
 /* === Video embeds === */
 .wiki-content .wvideo {
   display: block;

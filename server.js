@@ -3,7 +3,7 @@ const path = require('path');
 
 const namumark = require('./lib/namumark');
 const store = require('./lib/storage');
-const { layout, html, raw, escapeHtml, pageUrl } = require('./lib/layout');
+const { layout, html, raw, escapeHtml, pageUrl, authorLink, isUserPage, USER_NS } = require('./lib/layout');
 const { diffLines } = require('./lib/diff');
 const sections = require('./lib/sections');
 
@@ -66,6 +66,19 @@ app.get('/w/:title', (req, res) => {
   const renderedHtml = fillSectionLinks(parsed.html, title);
   const isOldRev = requestedRev && requestedRev !== page.currentRev;
 
+  // Banner shown above 사용자: pages — links to the owner's contributions
+  let userBanner = '';
+  if (isUserPage(title)) {
+    const userName = title.slice(USER_NS.length);
+    const contribs = store.findContributions(userName);
+    userBanner = html`
+      <div class="user-banner">
+        <strong>${userName}</strong> 님의 사용자 문서입니다.
+        편집 ${contribs.length}회 ·
+        <a href="/Contributions/${encodeURIComponent(userName)}">기여 목록 보기</a>
+      </div>`;
+  }
+
   const body = html`
     <article class="page">
       <header class="page-header">
@@ -76,10 +89,11 @@ app.get('/w/:title', (req, res) => {
           <a href="/discuss/${title}">토론</a>
         </nav>
       </header>
+      ${raw(userBanner)}
       <div class="page-meta">
         최근 수정: <a href="/history/${title}">${new Date(page.updatedAt).toLocaleString('ko-KR')}</a>
         · r${page.currentRev}
-        · 작성자 ${rev.author}
+        · 작성자 ${raw(authorLink(rev.author))}
         ${isOldRev ? raw(html` · <span class="old-rev-badge">이 문서는 이전 판(r${requestedRev})입니다. <a href="/w/${title}">최신 판 보기</a></span>`) : ''}
       </div>
       <div class="wiki-content">${raw(renderedHtml)}</div>
@@ -258,7 +272,7 @@ app.get('/history/:title', (req, res) => {
       <td><label><input type="radio" name="to" value="${r.rev}" /></label></td>
       <td><a href="/w/${title}?rev=${r.rev}">r${r.rev}</a></td>
       <td>${new Date(r.createdAt).toLocaleString('ko-KR')}</td>
-      <td>${r.author}</td>
+      <td>${raw(authorLink(r.author))}</td>
       <td class="delta ${raw(r.delta >= 0 ? 'pos' : 'neg')}">${(r.delta >= 0 ? '+' : '') + r.delta}</td>
       <td>${r.comment}</td>
       <td class="row-actions">
@@ -340,7 +354,7 @@ app.get('/RecentChanges', (req, res) => {
     <tr>
       <td>${new Date(c.createdAt).toLocaleString('ko-KR')}</td>
       <td><a href="/w/${encodeURIComponent(c.title)}">${escapeHtml(c.title)}</a> <a class="rev-link" href="/w/${encodeURIComponent(c.title)}?rev=${c.rev}">(r${c.rev})</a></td>
-      <td>${escapeHtml(c.author)}</td>
+      <td>${authorLink(c.author)}</td>
       <td class="delta ${c.delta >= 0 ? 'pos' : 'neg'}">${(c.delta >= 0 ? '+' : '') + c.delta}</td>
       <td>${escapeHtml(c.comment || '')}</td>
     </tr>`).join('');
@@ -438,6 +452,70 @@ app.get('/Category/:name', (req, res) => {
   send(res, layout({ title: '분류:' + cat, body }));
 });
 
+// User contributions — list every revision a given author made
+app.get('/Contributions/:user', (req, res) => {
+  const user = req.params.user;
+  const contribs = store.findContributions(user);
+  const userPage = USER_NS + user;
+  const rows = contribs.map((c) => `
+    <tr>
+      <td>${new Date(c.createdAt).toLocaleString('ko-KR')}</td>
+      <td><a href="/w/${encodeURIComponent(c.title)}">${escapeHtml(c.title)}</a> <a class="rev-link" href="/w/${encodeURIComponent(c.title)}?rev=${c.rev}">(r${c.rev})</a></td>
+      <td class="delta ${c.delta >= 0 ? 'pos' : 'neg'}">${(c.delta >= 0 ? '+' : '') + c.delta}</td>
+      <td>${escapeHtml(c.comment || '')}</td>
+    </tr>`).join('');
+
+  const body = html`
+    <article class="page">
+      <header class="page-header">
+        <h1 class="page-title">${user} 님의 기여</h1>
+        <nav class="page-actions">
+          <a href="/w/${userPage}">사용자 문서</a>
+          <a href="/UserList">사용자 목록</a>
+        </nav>
+      </header>
+      <p class="muted">${user === 'Anonymous'
+        ? '익명 사용자가 남긴 모든 편집입니다.'
+        : raw(`<strong>${escapeHtml(user)}</strong> 님이 지금까지 남긴 모든 편집입니다.`)} 총 ${contribs.length}회.</p>
+      ${contribs.length === 0
+        ? raw('<p class="muted">아직 이 사용자가 남긴 편집이 없습니다.</p>')
+        : raw(`<table class="changes-table">
+            <thead><tr><th>시각</th><th>문서</th><th>변화량</th><th>요약</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>`)}
+    </article>`;
+
+  send(res, layout({ title: user + ' 기여', body, currentTitle: userPage }));
+});
+
+// User list — every author with edit count, sorted by edits desc
+app.get('/UserList', (req, res) => {
+  const users = store.listAuthors();
+  const items = users.length === 0
+    ? '<li class="muted">아직 편집한 사용자가 없습니다.</li>'
+    : users.map((u) => {
+        const isAnon = u.author === 'Anonymous';
+        const userLink = isAnon
+          ? `<span>${escapeHtml(u.author)}</span>`
+          : `<a href="/w/${encodeURIComponent(USER_NS + u.author)}">${escapeHtml(u.author)}</a>`;
+        return `<li>
+          ${userLink}
+          <span class="meta">· ${u.edits}회 편집 · 최근 ${new Date(u.lastEdit).toLocaleDateString('ko-KR')}</span>
+          · <a href="/Contributions/${encodeURIComponent(u.author)}">기여</a>
+        </li>`;
+      }).join('');
+
+  const body = html`
+    <article class="page">
+      <header class="page-header">
+        <h1 class="page-title">사용자 목록 (${users.length})</h1>
+      </header>
+      <p class="muted">이 위키에 한 번이라도 편집한 모든 사용자입니다. 편집 횟수가 많은 순서로 정렬됩니다.</p>
+      <ul class="page-list">${raw(items)}</ul>
+    </article>`;
+  send(res, layout({ title: '사용자 목록', body }));
+});
+
 // Discuss (basic threaded comments)
 app.get('/discuss/:title', (req, res) => {
   const title = req.params.title;
@@ -446,7 +524,7 @@ app.get('/discuss/:title', (req, res) => {
     ? '<li class="muted">아직 작성된 토론이 없습니다. 첫 의견을 남겨보세요.</li>'
     : messages.map((m) => `
       <li class="comment">
-        <div class="comment-meta"><strong>${escapeHtml(m.author)}</strong> · ${new Date(m.createdAt).toLocaleString('ko-KR')}</div>
+        <div class="comment-meta"><strong>${authorLink(m.author)}</strong> · ${new Date(m.createdAt).toLocaleString('ko-KR')}</div>
         <div class="comment-body">${escapeHtml(m.content).replace(/\n/g, '<br/>')}</div>
       </li>`).join('');
 
