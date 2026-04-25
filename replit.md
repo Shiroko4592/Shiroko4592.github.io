@@ -30,20 +30,39 @@ package.json       # `npm start` -> node server.js
 ## Routes
 
 - `/` → redirects to `/w/대문`
-- `/w/:title` — read view (auto-creates "문서가 없습니다" placeholder)
-- `/edit/:title` (GET/POST) — editor with live preview tab
+- `/w/:title` — read view (auto-creates "문서가 없습니다" placeholder; ?rev=N for old revisions)
+- `/edit/:title` (GET/POST) — editor with live preview tab; supports `?section=N` for section-only editing
 - `/raw/:title` — raw wiki source
-- `/history/:title` — revision history with diff/revert
+- `/history/:title` — revision history with one-click revert
+- `/revert/:title` (POST) — copy a previous revision's content as a new revision
 - `/diff/:title?from=&to=` — side-by-side line diff
 - `/RecentChanges`, `/RandomPage`, `/AllPages`, `/Search?q=`
 - `/Backlink/:title`, `/Category/:name`
 - `/discuss/:title` (GET/POST) — discussion threads
-- `/delete/:title` (POST) — page deletion (creates a tombstone revision)
+- `/delete/:title` (POST) — page deletion
 - `/api/preview` (POST) — JSON endpoint used by the editor's live preview
 
 ## Namu-mark features supported
 
-Headings (`= ~ ======`), bold/italic/underline/strike/sup/sub, inline code `{{{...}}}` and block code `{{{#!syntax lang ... }}}`, links `[[Target|Label]]` and external `[[https://…|label]]`, lists (`*`, `1.`), tables `|| … ||` with cell options, blockquotes `>`, horizontal rules `----`, footnotes `[* …]`, categories `[[분류:Name]]`, indents.
+- Headings `= ~ ======` with auto-generated TOC (and `[목차]` macro)
+- Per-heading "[편집]" links for section-level editing
+- Bold/italic/underline/strike (`'''`, `''`, `__`, `~~`, `--`), sup `^^`, sub `,,`
+- Inline code `{{{ ... }}}` and inline color `{{{#red 글자}}}` / `{{{#1f6feb 글자}}}`
+- Block code `{{{#!syntax lang ... }}}` and `{{{ ... }}}`
+- Folding blocks `{{{#!folding 제목 ... }}}` → `<details>`
+- Links: `[[Page]]`, `[[Page|Label]]`, `[[Page#anchor]]`, `[[#anchor]]`, `[[https://…|label]]`, bare URL auto-link
+- Images `[[파일:URL|width=400,align=center,alt=...]]`
+- Lists (nested `*`, `1.`), tables `|| … ||` with `<:>`, `<(>`, `<)>`, `<-N>` (colspan), `<|N>` (rowspan), `<#color>` (bg)
+- Blockquotes `>`, horizontal rules `----` (4+ dashes)
+- Footnotes `[* …]`, categories `[[분류:Name]]`, indented lines
+
+## Editor features
+
+- Toolbar with quick-insert buttons (bold/italic/underline/strike, heading, internal/external link, image, lists, table, quote, code block, hr, TOC, footnote, category)
+- Tab-based live preview (uses `/api/preview`)
+- Keyboard shortcuts: Ctrl/Cmd+B/I/U/K, Ctrl/Cmd+Enter to save
+- Section-only editing pre-fills the comment with `/* 섹션 제목 */`
+- One-click revert from history saves a new revision with auto-comment
 
 ## Development
 

@@ -5,6 +5,7 @@ const namumark = require('./lib/namumark');
 const store = require('./lib/storage');
 const { layout, html, raw, escapeHtml, pageUrl } = require('./lib/layout');
 const { diffLines } = require('./lib/diff');
+const sections = require('./lib/sections');
 
 const app = express();
 const PORT = parseInt(process.env.PORT, 10) || 5000;
@@ -16,6 +17,13 @@ app.use(express.urlencoded({ extended: false, limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 function send(res, body) { res.set('Content-Type', 'text/html; charset=utf-8'); res.send(body); }
+
+// Replace section-edit placeholders with real URLs
+function fillSectionLinks(html, title) {
+  return html.replace(/\x00SECTIONEDIT(\d+)\x00/g, (_, i) =>
+    `/edit/${encodeURIComponent(title)}?section=${i}`
+  );
+}
 
 function notFoundPage(title) {
   const body = html`
@@ -54,7 +62,8 @@ app.get('/w/:title', (req, res) => {
     rev = store.getRevision(title, page.currentRev);
   }
 
-  const parsed = namumark.parse(rev.content);
+  const parsed = namumark.parse(rev.content, { autoToc: true });
+  const renderedHtml = fillSectionLinks(parsed.html, title);
   const isOldRev = requestedRev && requestedRev !== page.currentRev;
 
   const body = html`
@@ -73,7 +82,7 @@ app.get('/w/:title', (req, res) => {
         · 작성자 ${rev.author}
         ${isOldRev ? raw(html` · <span class="old-rev-badge">이 문서는 이전 판(r${requestedRev})입니다. <a href="/w/${title}">최신 판 보기</a></span>`) : ''}
       </div>
-      <div class="wiki-content">${raw(parsed.html)}</div>
+      <div class="wiki-content">${raw(renderedHtml)}</div>
       ${raw(parsed.categoriesHtml || '')}
     </article>`;
 
@@ -90,26 +99,72 @@ app.get('/raw/:title', (req, res) => {
   res.type('text/plain; charset=utf-8').send(rev.content);
 });
 
-// Edit form
+// Edit form (whole page or single section)
 app.get('/edit/:title', (req, res) => {
   const title = req.params.title;
   const page = store.getPage(title);
-  const content = page ? store.getCurrentContent(title) : '';
+  const fullContent = page ? store.getCurrentContent(title) : '';
+  const sectionIdx = req.query.section != null ? parseInt(req.query.section, 10) : null;
+  const isSection = sectionIdx != null && !Number.isNaN(sectionIdx) && page;
+
+  let content = fullContent;
+  let sectionHead = null;
+  if (isSection) {
+    const heads = sections.findHeadings(fullContent).heads;
+    if (sectionIdx >= 0 && sectionIdx < heads.length) {
+      content = sections.extractSection(fullContent, sectionIdx) || '';
+      sectionHead = heads[sectionIdx];
+    } else {
+      // fall back to whole page
+    }
+  }
+  // Pre-fill from query (used by revert "되돌리기" in history page)
+  if (req.query.rev) {
+    const rev = store.getRevision(title, parseInt(req.query.rev, 10));
+    if (rev) content = rev.content;
+  }
   const isNew = !page;
+
+  const titleLabel = isNew ? '새 문서: ' + title
+    : sectionHead ? `${title} (섹션 편집: ${sectionHead.text})`
+    : title + ' (편집)';
 
   const body = html`
     <article class="page">
       <header class="page-header">
-        <h1 class="page-title">${isNew ? '새 문서: ' + title : title + ' (편집)'}</h1>
+        <h1 class="page-title">${titleLabel}</h1>
         <nav class="page-actions">
           <a href="/w/${title}">취소</a>
         </nav>
       </header>
 
-      <form id="editor-form" class="editor-form" method="post" action="/edit/${title}">
+      <form id="editor-form" class="editor-form" method="post" action="/edit/${title}${isSection && sectionHead ? raw('?section=' + sectionIdx) : ''}">
         <div class="editor-tabs">
           <button type="button" class="tab active" data-tab="write">편집</button>
           <button type="button" class="tab" data-tab="preview">미리보기</button>
+        </div>
+
+        <div class="editor-toolbar" id="editor-toolbar">
+          <button type="button" data-insert="bold" title="굵게 (Ctrl+B)"><b>B</b></button>
+          <button type="button" data-insert="italic" title="기울임 (Ctrl+I)"><i>I</i></button>
+          <button type="button" data-insert="underline" title="밑줄 (Ctrl+U)"><u>U</u></button>
+          <button type="button" data-insert="strike" title="취소선">S</button>
+          <span class="tb-sep"></span>
+          <button type="button" data-insert="h2" title="제목">H</button>
+          <button type="button" data-insert="link" title="내부 링크 (Ctrl+K)">🔗</button>
+          <button type="button" data-insert="extlink" title="외부 링크">↗</button>
+          <button type="button" data-insert="img" title="이미지">🖼</button>
+          <span class="tb-sep"></span>
+          <button type="button" data-insert="ul" title="목록">•</button>
+          <button type="button" data-insert="ol" title="번호 목록">1.</button>
+          <button type="button" data-insert="table" title="표">⊞</button>
+          <button type="button" data-insert="quote" title="인용">❝</button>
+          <button type="button" data-insert="code" title="코드 블록">{}</button>
+          <button type="button" data-insert="hr" title="가로줄">—</button>
+          <span class="tb-sep"></span>
+          <button type="button" data-insert="toc" title="목차">[목차]</button>
+          <button type="button" data-insert="footnote" title="각주">[*]</button>
+          <button type="button" data-insert="cat" title="분류">📂</button>
         </div>
 
         <div class="editor-pane" data-pane="write">
@@ -121,7 +176,7 @@ app.get('/edit/:title', (req, res) => {
 
         <div class="editor-meta">
           <label>편집 요약
-            <input type="text" name="comment" maxlength="200" placeholder="이 편집의 요약을 한 줄로..." />
+            <input type="text" name="comment" maxlength="200" placeholder="이 편집의 요약을 한 줄로..." value="${req.query.rev ? '판 r' + req.query.rev + '으로 되돌림' : (sectionHead ? '/* ' + sectionHead.text + ' */ ' : '')}" />
           </label>
           <label>작성자
             <input type="text" name="author" maxlength="40" placeholder="Anonymous" />
@@ -131,7 +186,7 @@ app.get('/edit/:title', (req, res) => {
         <div class="editor-actions">
           <button type="submit" class="btn btn-primary">저장</button>
           <a href="/w/${title}" class="btn">취소</a>
-          ${page ? raw(html`<button type="button" id="delete-btn" class="btn btn-danger">삭제</button>`) : ''}
+          ${page && !isSection ? raw(html`<button type="button" id="delete-btn" class="btn btn-danger">삭제</button>`) : ''}
         </div>
       </form>
 
@@ -139,10 +194,10 @@ app.get('/edit/:title', (req, res) => {
         <summary>나무마크 빠른 도움말</summary>
         <ul>
           <li><code>== 제목 ==</code> · <code>'''굵게'''</code> · <code>''기울임''</code> · <code>__밑줄__</code> · <code>~~취소선~~</code></li>
-          <li><code>[[문서명]]</code> · <code>[[문서명|표시]]</code> · <code>[[https://...|외부]]</code></li>
+          <li><code>[[문서명]]</code> · <code>[[문서명#섹션|표시]]</code> · <code>[[https://...|외부]]</code> · <code>[[파일:URL|width=300]]</code></li>
           <li><code>&nbsp;* 항목</code> · <code>&nbsp;1. 항목</code> · <code>||셀||셀||</code></li>
-          <li><code>&gt; 인용</code> · <code>----</code> 가로줄 · <code>{{{ ... }}}</code> 코드 블록</li>
-          <li><code>[[분류:이름]]</code> 분류 추가 · <code>[* 각주]</code></li>
+          <li><code>&gt; 인용</code> · <code>----</code> 가로줄 · <code>{{{ ... }}}</code> 코드 블록 · <code>{{{#!folding 제목 ... }}}</code> 접기</li>
+          <li><code>{{{#red 색깔}}}</code> · <code>[목차]</code> · <code>[* 각주]</code> · <code>[[분류:이름]]</code></li>
         </ul>
       </details>
     </article>`;
@@ -150,13 +205,35 @@ app.get('/edit/:title', (req, res) => {
   send(res, layout({ title: isNew ? `${title} 만들기` : `${title} 편집`, body, currentTitle: title, bodyClass: 'mode-edit' }));
 });
 
-// Save edit
+// Save edit (whole page or single section)
 app.post('/edit/:title', (req, res) => {
   const title = req.params.title;
-  const content = String(req.body.content || '');
+  const submitted = String(req.body.content || '');
   const author = String(req.body.author || '').trim() || 'Anonymous';
   const comment = String(req.body.comment || '').trim();
-  store.saveRevision(title, content, author, comment, req.ip);
+  const sectionIdx = req.query.section != null ? parseInt(req.query.section, 10) : null;
+
+  let finalContent = submitted;
+  if (sectionIdx != null && !Number.isNaN(sectionIdx)) {
+    const page = store.getPage(title);
+    if (page) {
+      const fullContent = store.getCurrentContent(title) || '';
+      finalContent = sections.replaceSection(fullContent, sectionIdx, submitted);
+    }
+  }
+  store.saveRevision(title, finalContent, author, comment, req.ip);
+  res.redirect('/w/' + encodeURIComponent(title));
+});
+
+// One-click revert: copies a previous revision's content as a new revision
+app.post('/revert/:title', (req, res) => {
+  const title = req.params.title;
+  const targetRev = parseInt(req.body.rev, 10);
+  if (!targetRev) return res.redirect('/history/' + encodeURIComponent(title));
+  const rev = store.getRevision(title, targetRev);
+  if (!rev) return res.redirect('/history/' + encodeURIComponent(title));
+  const author = String(req.body.author || '').trim() || 'Anonymous';
+  store.saveRevision(title, rev.content, author, `판 r${targetRev}으로 되돌림`, req.ip);
   res.redirect('/w/' + encodeURIComponent(title));
 });
 
@@ -182,7 +259,14 @@ app.get('/history/:title', (req, res) => {
       <td>${r.author}</td>
       <td class="delta ${raw(r.delta >= 0 ? 'pos' : 'neg')}">${(r.delta >= 0 ? '+' : '') + r.delta}</td>
       <td>${r.comment}</td>
-      <td><a href="/raw/${title}?rev=${r.rev}">원본</a></td>
+      <td class="row-actions">
+        <a href="/raw/${title}?rev=${r.rev}">원본</a>
+        ${r.rev !== page.currentRev ? raw(html`
+          <form method="post" action="/revert/${title}" class="inline-form" onsubmit="return confirm('판 r${r.rev}의 내용으로 되돌립니다. 새 판으로 기록됩니다. 계속할까요?');">
+            <input type="hidden" name="rev" value="${r.rev}" />
+            <button type="submit" class="link-btn">되돌리기</button>
+          </form>`) : ''}
+      </td>
     </tr>`);
 
   const body = html`
@@ -391,8 +475,10 @@ app.post('/discuss/:title', (req, res) => {
 // Live preview API for editor
 app.post('/api/preview', (req, res) => {
   const text = String(req.body.content || '');
-  const parsed = namumark.parse(text);
-  res.json({ html: parsed.html + (parsed.categoriesHtml || '') });
+  const parsed = namumark.parse(text, { autoToc: false });
+  // Section-edit links inside preview don't navigate anywhere useful — strip them
+  const cleaned = parsed.html.replace(/\x00SECTIONEDIT\d+\x00/g, '#');
+  res.json({ html: cleaned + (parsed.categoriesHtml || '') });
 });
 
 // Generic 404

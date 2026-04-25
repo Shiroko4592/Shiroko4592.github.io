@@ -1,5 +1,5 @@
 (function () {
-  // Editor: tabs + live preview
+  // Editor: tabs + live preview + toolbar
   const form = document.getElementById('editor-form');
   if (!form) return;
 
@@ -7,6 +7,7 @@
   const panes = form.querySelectorAll('.editor-pane');
   const textarea = document.getElementById('content');
   const preview = document.getElementById('preview');
+  const toolbar = document.getElementById('editor-toolbar');
 
   let previewTimer = null;
   let lastPreviewed = null;
@@ -41,7 +42,6 @@
   textarea.addEventListener('input', () => {
     clearTimeout(previewTimer);
     previewTimer = setTimeout(() => {
-      // Only refresh if preview tab is active
       const previewTab = form.querySelector('.tab[data-tab="preview"]');
       if (previewTab && previewTab.classList.contains('active')) refreshPreview();
     }, 300);
@@ -52,14 +52,145 @@
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
       form.submit();
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
+      const k = e.key.toLowerCase();
+      if (k === 'b') { e.preventDefault(); insertWrap("'''", "'''", '굵게'); }
+      else if (k === 'i') { e.preventDefault(); insertWrap("''", "''", '기울임'); }
+      else if (k === 'u') { e.preventDefault(); insertWrap('__', '__', '밑줄'); }
+      else if (k === 'k') { e.preventDefault(); insertLink(); }
     }
   });
+
+  // Toolbar actions
+  function getSel() {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    return { start, end, text: textarea.value.substring(start, end) };
+  }
+  function setSel(start, end) {
+    textarea.focus();
+    textarea.setSelectionRange(start, end == null ? start : end);
+  }
+  function replaceSel(newText, selectStart, selectEnd) {
+    const { start, end } = getSel();
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(end);
+    textarea.value = before + newText + after;
+    if (selectStart != null) {
+      setSel(start + selectStart, start + (selectEnd == null ? selectStart : selectEnd));
+    } else {
+      setSel(start + newText.length);
+    }
+    textarea.dispatchEvent(new Event('input'));
+  }
+  function insertWrap(left, right, placeholder) {
+    const sel = getSel();
+    const inner = sel.text || placeholder;
+    replaceSel(left + inner + right, left.length, left.length + inner.length);
+  }
+  function insertLink() {
+    const sel = getSel();
+    const t = sel.text || '문서명';
+    replaceSel('[[' + t + ']]', 2, 2 + t.length);
+  }
+  function insertExtLink() {
+    const sel = getSel();
+    const url = 'https://example.com';
+    const label = sel.text || '링크 텍스트';
+    replaceSel('[[' + url + '|' + label + ']]', 2 + url.length + 1, 2 + url.length + 1 + label.length);
+  }
+  function insertImg() {
+    replaceSel('[[파일:https://example.com/image.png|width=400]]', 5, 5 + 28);
+  }
+  function insertHeading(level) {
+    const eq = '='.repeat(level);
+    const sel = getSel();
+    const t = sel.text || '제목';
+    insertAtLineStart(eq + ' ' + t + ' ' + eq, level + 1, level + 1 + t.length);
+  }
+  function insertAtLineStart(insertion, selStart, selEnd) {
+    const start = textarea.selectionStart;
+    const v = textarea.value;
+    let lineStart = v.lastIndexOf('\n', start - 1) + 1;
+    const before = v.substring(0, lineStart);
+    const lineRest = v.substring(lineStart);
+    const lineEnd = lineRest.indexOf('\n');
+    const currentLine = lineEnd === -1 ? lineRest : lineRest.substring(0, lineEnd);
+    const after = lineEnd === -1 ? '' : lineRest.substring(lineEnd);
+    const needsBlank = before && !before.endsWith('\n\n') && before.endsWith('\n') ? '' : (before ? '\n' : '');
+    textarea.value = before + needsBlank + insertion + (currentLine.trim() ? '\n' + currentLine : '') + after;
+    const cursorAt = (before + needsBlank).length + (selStart == null ? insertion.length : selStart);
+    setSel(cursorAt, (before + needsBlank).length + (selEnd == null ? insertion.length : selEnd));
+    textarea.dispatchEvent(new Event('input'));
+  }
+  function insertList(ordered) {
+    const sel = getSel();
+    const text = sel.text || '항목';
+    const marker = ordered ? '1.' : '*';
+    const lines = text.split('\n').map((l) => ' ' + marker + ' ' + (l || '항목')).join('\n');
+    replaceSel('\n' + lines + '\n');
+  }
+  function insertTable() {
+    replaceSel('\n||<:>\'\'\'헤더1\'\'\'||<:>\'\'\'헤더2\'\'\'||\n||내용 A||내용 B||\n||내용 C||내용 D||\n');
+  }
+  function insertQuote() {
+    const sel = getSel();
+    const text = sel.text || '인용문';
+    const lines = text.split('\n').map((l) => '> ' + l).join('\n');
+    replaceSel('\n' + lines + '\n');
+  }
+  function insertCode() {
+    const sel = getSel();
+    const code = sel.text || 'code';
+    replaceSel('\n{{{\n' + code + '\n}}}\n');
+  }
+  function insertHr() { replaceSel('\n----\n'); }
+  function insertToc() { replaceSel('[목차]'); }
+  function insertFootnote() {
+    const sel = getSel();
+    const t = sel.text || '각주 내용';
+    replaceSel('[* ' + t + ']', 3, 3 + t.length);
+  }
+  function insertCategory() {
+    replaceSel('[[분류:이름]]', 5, 5 + 2);
+  }
+
+  if (toolbar) {
+    toolbar.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-insert]');
+      if (!btn) return;
+      e.preventDefault();
+      const k = btn.dataset.insert;
+      switch (k) {
+        case 'bold': insertWrap("'''", "'''", '굵게'); break;
+        case 'italic': insertWrap("''", "''", '기울임'); break;
+        case 'underline': insertWrap('__', '__', '밑줄'); break;
+        case 'strike': insertWrap('~~', '~~', '취소선'); break;
+        case 'h2': insertHeading(2); break;
+        case 'link': insertLink(); break;
+        case 'extlink': insertExtLink(); break;
+        case 'img': insertImg(); break;
+        case 'ul': insertList(false); break;
+        case 'ol': insertList(true); break;
+        case 'table': insertTable(); break;
+        case 'quote': insertQuote(); break;
+        case 'code': insertCode(); break;
+        case 'hr': insertHr(); break;
+        case 'toc': insertToc(); break;
+        case 'footnote': insertFootnote(); break;
+        case 'cat': insertCategory(); break;
+      }
+    });
+  }
 
   // Delete button (POST to /delete/:title)
   const deleteBtn = document.getElementById('delete-btn');
   if (deleteBtn) {
     deleteBtn.addEventListener('click', () => {
-      const title = decodeURIComponent(form.action.split('/edit/')[1] || '');
+      const action = form.action.split('?')[0];
+      const title = decodeURIComponent(action.split('/edit/')[1] || '');
       if (!title) return;
       if (!confirm(`정말로 "${title}" 문서를 삭제하시겠습니까?\n모든 역사가 함께 삭제됩니다.`)) return;
       const f = document.createElement('form');
