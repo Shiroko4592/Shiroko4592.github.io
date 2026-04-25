@@ -567,7 +567,7 @@ app.get('/Upload', (req, res) => {
   const body = html`
     <article class="page">
       <header class="page-header">
-        <h1 class="page-title">파일 올리기</h1>
+        <h1 class="page-title">올리적재</h1>
       </header>
       ${err ? raw(`<div class="auth-error">${err}</div>`) : ''}
       ${ok ? raw(`<div class="upload-ok">업로드 완료! 위키에서 사용하려면: <code>[[파일:${ok}]]</code> · <a href="${ok}" target="_blank">새 탭으로 열기</a></div>`) : ''}
@@ -580,14 +580,14 @@ app.get('/Upload', (req, res) => {
           </form>`)
         : raw(`<div class="auth-error">파일을 올리려면 <a href="/login">로그인</a>이 필요합니다.</div>`)}
 
-      <h2 style="margin-top:28px;">최근 업로드</h2>
+      <h2 style="margin-top:28px;">올리적재 내역</h2>
       <div class="upload-grid">${raw(items)}</div>
       <p class="muted" style="margin-top:18px;">
         업로드한 이미지는 <code>[[파일:/uploads/...]]</code> 문법으로 어떤 문서에서든 사용할 수 있습니다.
         편집기 툴바의 <strong>📤</strong> 버튼을 누르면 그 자리에 바로 업로드해 삽입할 수 있습니다.
       </p>
     </article>`;
-  send(res, layout({ title: '파일 올리기', body, currentUser: req.currentUser }));
+  send(res, layout({ title: '올리적재', body, currentUser: req.currentUser }));
 });
 
 // ===== Move (rename) page =====
