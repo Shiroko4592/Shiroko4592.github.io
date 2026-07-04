@@ -1,6 +1,15 @@
+/* Kingnam Bobohei (한자 폰트) - site-wide 적용 */
+@font-face {
+    font-family: 'Kingnam Bobohei';
+    src: url('https://raw.githubusercontent.com/maoken-fonts/KNBobohei/main/fonts/TTF/KNBobohei-Bold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* 기본 바디 스타일 */
 body {
-    font-family: "Noto Sans SC", 'Nanum Gothic', 'Noto Sans KR', sans-serif;
+    font-family: 'Kingnam Bobohei', "Noto Sans SC", 'Nanum Gothic', 'Noto Sans KR', sans-serif;
     line-height: 1.6;
     background-color: #fdf6e3;
     color: #333;
