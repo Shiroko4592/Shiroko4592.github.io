@@ -1,21 +1,36 @@
-/* Kingnam Bobohei (한자 폰트) - site-wide 적용 */
+/* Google Fonts에서 제공하는 한글/중문 폰트 - head의 link와 일치 */
 @font-face {
-    font-family: 'Kingnam Bobohei';
-    src: url('https://raw.githubusercontent.com/maoken-fonts/KNBobohei/main/fonts/TTF/KNBobohei-Bold.ttf') format('truetype');
-    font-weight: normal;
+    font-family: 'Noto Sans KR';
     font-style: normal;
-    font-display: swap;
+    font-weight: 400;
+    src: url('https://fonts.gstatic.com/s/notosanskr/v12/-F6ofjtqLzI2JPCgQBnw7HFQucc.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Noto Sans KR';
+    font-style: normal;
+    font-weight: 500;
+    src: url('https://fonts.gstatic.com/s/notosanskr/v12/-F6ofjtqLzI2JPCgQBnw7HFQucc.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Noto Sans KR';
+    font-style: normal;
+    font-weight: 700;
+    src: url('https://fonts.gstatic.com/s/notosanskr/v12/-F6ofjtqLzI2JPCgQBnw7HFQucc.woff2') format('woff2');
 }
 
 /* 기본 바디 스타일 */
 body {
-    font-family: 'Kingnam Bobohei', "Noto Sans SC", 'Nanum Gothic', 'Noto Sans KR', sans-serif;
+    font-family: 'Noto Sans KR', 'Noto Sans SC', 'Nanum Gothic', sans-serif;
     line-height: 1.6;
     background-color: #fdf6e3;
     color: #333;
     margin: 0;
     padding: 15px;
     box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* 제목 스타일 */
@@ -25,6 +40,7 @@ h1 {
     margin-bottom: 20px;
     font-weight: 700;
     font-size: clamp(1.5rem, 5vw, 2.5rem);
+    font-family: 'Noto Sans KR', 'Noto Sans SC', sans-serif;
 }
 
 h2 {
@@ -33,6 +49,7 @@ h2 {
     margin-bottom: 15px;
     font-weight: 600;
     font-size: clamp(1.25rem, 4vw, 2rem);
+    font-family: 'Noto Sans KR', 'Noto Sans SC', sans-serif;
 }
 
 h3, h4 {
@@ -41,6 +58,7 @@ h3, h4 {
     margin-bottom: 10px;
     font-weight: 600;
     font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+    font-family: 'Noto Sans KR', 'Noto Sans SC', sans-serif;
 }
 
 /* 단락 스타일 */
@@ -82,6 +100,7 @@ figcaption {
     color: #666;
     margin-top: 8px;
     font-style: italic;
+    font-family: 'Noto Sans KR', 'Noto Sans SC', sans-serif;
 }
 
 /* 각주 */
