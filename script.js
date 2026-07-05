@@ -129,32 +129,15 @@ function initImageFilters() {
   }
 }
 
-// 타임라인 변환
+// 타임라인 스타일 추가 (날짜 표시만 스타일링)
 function initTimeline() {
   const headers = document.querySelectorAll('h3');
   headers.forEach(header => {
     if (header.innerText.match(/\d+\s*(?:일|일차|일째)/)) {
-      const parent = header.parentElement;
-      const timelineContainer = document.createElement('div');
-      timelineContainer.className = 'timeline-container';
-      parent.insertBefore(timelineContainer, header);
-
-      let content = header;
-      while (content && !content.nextElementSibling?.querySelector('h3')) {
-        if (content === header) {
-          content = content.nextElementSibling;
-        } else if (content) {
-          const timelineItem = document.createElement('div');
-          timelineItem.className = 'timeline-item';
-          const clone = content.cloneNode(true);
-          timelineItem.appendChild(clone);
-          timelineContainer.appendChild(timelineItem);
-          content.remove();
-          content = timelineContainer.nextElementSibling;
-        } else {
-          break;
-        }
-      }
+      // 날짜 표시 스타일만 추가
+      header.style.borderLeft = '4px solid #2a5d84';
+      header.style.paddingLeft = '15px';
+      header.style.marginLeft = '0';
     }
   });
 }
@@ -201,7 +184,8 @@ function initMap() {
   mapContainer.className = 'map-container';
   mapContainer.innerHTML = '<div id="map"></div>';
 
-  const footerNote = document.querySelector('h2:contains("각주")');
+  // 각주 섹션 찾기
+  const footerNote = Array.from(document.querySelectorAll('h2')).find(h => h.innerText.includes('각주'));
   if (footerNote) {
     footerNote.parentElement.insertBefore(mapContainer, footerNote);
   } else {
