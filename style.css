@@ -1,5 +1,12 @@
-/* Kingnam bobohei 폰트 적용 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+/* BPMF Huninn 폰트 적용 */
+@font-face {
+  font-family: 'BPMF Huninn';
+  src: url('https://fontmeme.com/fonts/BPMF-Huninn.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
 
 /* 다크모드 CSS 변수 */
 :root {
@@ -26,7 +33,7 @@ body.dark-mode {
 
 /* 기본 바디 스타일 */
 body {
-  font-family: 'Kingnam bobohei', 'Noto Sans KR', sans-serif;
+  font-family: 'BPMF Huninn', sans-serif;
   line-height: 1.6;
   background-color: var(--bg-color);
   color: var(--text-color);
@@ -79,6 +86,7 @@ body {
   width: 100%;
   padding: 12px;
   font-size: 1rem;
+  font-family: 'BPMF Huninn', sans-serif;
   border: 2px solid var(--heading-color);
   border-radius: 8px;
   background-color: var(--bg-color);
@@ -103,7 +111,7 @@ h1 {
   margin-bottom: 20px;
   font-weight: 700;
   font-size: clamp(1.5rem, 5vw, 2.5rem);
-  font-family: 'Kingnam bobohei', 'Noto Sans KR', sans-serif;
+  font-family: 'BPMF Huninn', sans-serif;
   transition: color 0.3s;
 }
 
@@ -113,7 +121,7 @@ h2 {
   margin-bottom: 15px;
   font-weight: 600;
   font-size: clamp(1.25rem, 4vw, 2rem);
-  font-family: 'Kingnam bobohei', 'Noto Sans KR', sans-serif;
+  font-family: 'BPMF Huninn', sans-serif;
   transition: color 0.3s;
 }
 
@@ -123,7 +131,7 @@ h3, h4 {
   margin-bottom: 10px;
   font-weight: 600;
   font-size: clamp(1.1rem, 3.5vw, 1.5rem);
-  font-family: 'Kingnam bobohei', 'Noto Sans KR', sans-serif;
+  font-family: 'BPMF Huninn', sans-serif;
   transition: color 0.3s;
 }
 
@@ -182,6 +190,7 @@ p {
   line-height: 1.8;
   color: var(--text-color);
   transition: color 0.3s;
+  font-family: 'BPMF Huninn', sans-serif;
 }
 
 /* 이미지 스타일 */
@@ -204,7 +213,7 @@ img:active {
 .img-half { width: 50%; }
 .img-third { width: 33%; }
 
-/* 이미지 필터 컨트롤 */
+/* 이미지 필터 카트롤 */
 .image-filter-controls {
   display: flex;
   gap: 10px;
@@ -221,6 +230,7 @@ img:active {
   border-radius: 5px;
   cursor: pointer;
   font-size: 0.9rem;
+  font-family: 'BPMF Huninn', sans-serif;
   transition: all 0.3s;
 }
 
@@ -314,7 +324,7 @@ figcaption {
   color: var(--caption-color);
   margin-top: 8px;
   font-style: italic;
-  font-family: 'Kingnam bobohei', 'Noto Sans KR', sans-serif;
+  font-family: 'BPMF Huninn', sans-serif;
   transition: color 0.3s;
 }
 
@@ -350,7 +360,7 @@ a:active {
   color: var(--link-hover);
 }
 
-/* 지도 컨테이너 */
+/* 지도 카테이너 */
 .map-container {
   margin: 20px 0;
   border-radius: 8px;
@@ -370,6 +380,7 @@ a:active {
   padding: 8px 12px;
   border-radius: 5px;
   font-size: 0.9rem;
+  font-family: 'BPMF Huninn', sans-serif;
   margin: 5px 0;
   cursor: pointer;
   transition: all 0.3s;
@@ -396,6 +407,7 @@ a:active {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-family: 'BPMF Huninn', sans-serif;
   transition: all 0.3s;
 }
 
