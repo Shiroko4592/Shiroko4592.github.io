@@ -1,13 +1,8 @@
-/* BPMF Huninn 폰트 - 로컬 폰트 파일에서 로드 */
-@font-face {
-  font-family: 'BPMF Huninn';
-  src: url('/fonts/BpmfHuninn-Regular.woff2') format('woff2'),
-       url('/fonts/BpmfHuninn-Regular.woff') format('woff'),
-       url('/fonts/BpmfHuninn-Regular.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* BPMF Huninn 폰트 - Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Huninn&display=swap');
+
+/* Huninn → BPMF Huninn 별칭 */
+:root { --font-main: 'Huninn', sans-serif; }
 
 /* 다크모드 CSS 변수 */
 :root {
@@ -34,7 +29,7 @@ body.dark-mode {
 
 /* 기본 바디 스타일 */
 body {
-  font-family: 'BPMF Huninn', sans-serif;
+  font-family: 'Huninn', sans-serif;
   line-height: 1.6;
   background-color: var(--bg-color);
   color: var(--text-color);
@@ -87,7 +82,7 @@ body {
   width: 100%;
   padding: 12px;
   font-size: 1rem;
-  font-family: 'BPMF Huninn', sans-serif;
+  font-family: 'Huninn', sans-serif;
   border: 2px solid var(--heading-color);
   border-radius: 8px;
   background-color: var(--bg-color);
@@ -112,7 +107,7 @@ h1 {
   margin-bottom: 20px;
   font-weight: 700;
   font-size: clamp(1.5rem, 5vw, 2.5rem);
-  font-family: 'BPMF Huninn', sans-serif;
+  font-family: 'Huninn', sans-serif;
   transition: color 0.3s;
 }
 
@@ -122,7 +117,7 @@ h2 {
   margin-bottom: 15px;
   font-weight: 600;
   font-size: clamp(1.25rem, 4vw, 2rem);
-  font-family: 'BPMF Huninn', sans-serif;
+  font-family: 'Huninn', sans-serif;
   transition: color 0.3s;
 }
 
@@ -132,7 +127,7 @@ h3, h4 {
   margin-bottom: 10px;
   font-weight: 600;
   font-size: clamp(1.1rem, 3.5vw, 1.5rem);
-  font-family: 'BPMF Huninn', sans-serif;
+  font-family: 'Huninn', sans-serif;
   transition: color 0.3s;
   border-left: 4px solid var(--heading-color);
   padding-left: 15px;
@@ -193,7 +188,7 @@ p {
   line-height: 1.8;
   color: var(--text-color);
   transition: color 0.3s;
-  font-family: 'BPMF Huninn', sans-serif;
+  font-family: 'Huninn', sans-serif;
 }
 
 /* 이미지 스타일 */
@@ -233,7 +228,7 @@ img:active {
   border-radius: 5px;
   cursor: pointer;
   font-size: 0.9rem;
-  font-family: 'BPMF Huninn', sans-serif;
+  font-family: 'Huninn', sans-serif;
   transition: all 0.3s;
 }
 
@@ -327,7 +322,7 @@ figcaption {
   color: var(--caption-color);
   margin-top: 8px;
   font-style: italic;
-  font-family: 'BPMF Huninn', sans-serif;
+  font-family: 'Huninn', sans-serif;
   transition: color 0.3s;
 }
 
@@ -383,7 +378,7 @@ a:active {
   padding: 8px 12px;
   border-radius: 5px;
   font-size: 0.9rem;
-  font-family: 'BPMF Huninn', sans-serif;
+  font-family: 'Huninn', sans-serif;
   margin: 5px 0;
   cursor: pointer;
   transition: all 0.3s;
@@ -410,7 +405,7 @@ a:active {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-family: 'BPMF Huninn', sans-serif;
+  font-family: 'Huninn', sans-serif;
   transition: all 0.3s;
 }
 
