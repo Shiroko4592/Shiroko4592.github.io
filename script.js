@@ -1,4 +1,3 @@
-// 이미지 로딩 최적화 (Lazy Loading)
 if ('IntersectionObserver' in window) {
   const images = document.querySelectorAll('img');
   const imageObserver = new IntersectionObserver((entries, observer) => {
@@ -13,12 +12,11 @@ if ('IntersectionObserver' in window) {
   images.forEach(img => imageObserver.observe(img));
 }
 
-// 다크모드 토글
 function initThemeToggle() {
   const toggleBtn = document.createElement('button');
   toggleBtn.className = 'theme-toggle';
   toggleBtn.innerHTML = '🌙';
-  toggleBtn.title = '다크모드 토글';
+  toggleBtn.title = '다크 모드';
   document.body.appendChild(toggleBtn);
 
   const savedTheme = localStorage.getItem('theme') || 'light';
@@ -35,7 +33,6 @@ function initThemeToggle() {
   });
 }
 
-// 검색 기능
 function initSearch() {
   const searchContainer = document.createElement('div');
   searchContainer.className = 'search-container';
@@ -85,7 +82,6 @@ function initSearch() {
   });
 }
 
-// 이미지 필터
 function initImageFilters() {
   const filterContainer = document.createElement('div');
   filterContainer.className = 'image-filter-controls';
@@ -121,7 +117,6 @@ function initImageFilters() {
     });
   });
 
-  // 저장된 필터 복원
   const savedFilter = localStorage.getItem('imageFilter') || 'none';
   const savedBtn = filterContainer.querySelector(`[data-filter="${savedFilter}"]`);
   if (savedBtn) {
@@ -129,12 +124,10 @@ function initImageFilters() {
   }
 }
 
-// 타임라인 스타일 추가 (날짜 표시만 스타일링)
 function initTimeline() {
   const headers = document.querySelectorAll('h3');
   headers.forEach(header => {
     if (header.innerText.match(/\d+\s*(?:일|일차|일째)/)) {
-      // 날짜 표시 스타일만 추가
       header.style.borderLeft = '4px solid #2a5d84';
       header.style.paddingLeft = '15px';
       header.style.marginLeft = '0';
@@ -142,14 +135,13 @@ function initTimeline() {
   });
 }
 
-// 좋아요 기능
 function initLikes() {
   const figures = document.querySelectorAll('figure');
   figures.forEach((fig, index) => {
     const likeBtn = document.createElement('button');
     likeBtn.className = 'like-button';
     likeBtn.innerHTML = '❤️';
-    likeBtn.title = '좋아요';
+    likeBtn.title = '개추';
 
     const likeCount = document.createElement('div');
     likeCount.className = 'like-count';
@@ -178,13 +170,11 @@ function initLikes() {
   });
 }
 
-// 지도 통합 (Leaflet.js)
 function initMap() {
   const mapContainer = document.createElement('div');
   mapContainer.className = 'map-container';
   mapContainer.innerHTML = '<div id="map"></div>';
 
-  // 각주 섹션 찾기
   const footerNote = Array.from(document.querySelectorAll('h2')).find(h => h.innerText.includes('각주'));
   if (footerNote) {
     footerNote.parentElement.insertBefore(mapContainer, footerNote);
@@ -192,7 +182,6 @@ function initMap() {
     document.body.appendChild(mapContainer);
   }
 
-  // Leaflet 라이브러리 동적 로드
   const script = document.createElement('script');
   script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
   document.head.appendChild(script);
@@ -210,7 +199,6 @@ function initMap() {
         maxZoom: 19
       }).addTo(map);
 
-      // 대만 주요 관광지
       const locations = [
         { name: '국립고궁박물관', lat: 25.0330, lng: 121.5654, icon: '🏛️' },
         { name: '청핀서점', lat: 25.0281, lng: 121.5447, icon: '📚' },
@@ -231,7 +219,6 @@ function initMap() {
   };
 }
 
-// 모바일 스와이프 슬라이더
 function initSwipeSlider() {
   const galleries = document.querySelectorAll('.gallery');
   galleries.forEach(gallery => {
@@ -256,7 +243,6 @@ function initSwipeSlider() {
           currentIndex = (currentIndex - 1 + items.length) % items.length;
         }
 
-        // 슬라이더 효과
         const scrollLeft = gallery.scrollLeft;
         const itemWidth = gallery.querySelector('img')?.width || gallery.offsetWidth;
         gallery.scrollLeft = scrollLeft + (diff > 0 ? itemWidth : -itemWidth);
@@ -265,7 +251,6 @@ function initSwipeSlider() {
   });
 }
 
-// 각주 스무스 스크롤 (기존 기능)
 function initFootnotes() {
   const footnoteLinks = document.querySelectorAll('sup a');
   footnoteLinks.forEach(link => {
@@ -284,7 +269,6 @@ function initFootnotes() {
   });
 }
 
-// 이미지 줌 (기존 기능)
 function initImageZoom() {
   const images = document.querySelectorAll('img');
   images.forEach(img => {
@@ -306,7 +290,6 @@ function initImageZoom() {
   });
 }
 
-// 모든 기능 초기화
 document.addEventListener('DOMContentLoaded', function() {
   initThemeToggle();
   initSearch();
