@@ -1,10 +1,7 @@
-/* BPMF Huninn 폰트 - Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Huninn&display=swap');
 
-/* Huninn → BPMF Huninn 별칭 */
 :root { --font-main: 'Huninn', sans-serif; }
 
-/* 다크모드 CSS 변수 */
 :root {
   --bg-color: #fdf6e3;
   --text-color: #333;
@@ -27,7 +24,6 @@ body.dark-mode {
   --shadow-color: rgba(0, 0, 0, 0.5);
 }
 
-/* 기본 바디 스타일 */
 body {
   font-family: 'Huninn', sans-serif;
   line-height: 1.6;
@@ -41,7 +37,6 @@ body {
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* 토글 버튼 */
 .theme-toggle {
   position: fixed;
   top: 20px;
@@ -66,7 +61,6 @@ body {
   transform: scale(1.1);
 }
 
-/* 검색 바 */
 .search-container {
   position: sticky;
   top: 20px;
@@ -100,7 +94,6 @@ body {
   color: var(--caption-color);
 }
 
-/* 제목 스타일 */
 h1 {
   color: var(--heading-color);
   margin-top: 20px;
@@ -133,7 +126,6 @@ h3, h4 {
   padding-left: 15px;
 }
 
-/* 타임라인 스타일 */
 .timeline-container {
   position: relative;
   padding: 20px 0;
@@ -180,7 +172,6 @@ h3, h4 {
   margin-bottom: 5px;
 }
 
-/* 단락 스타일 */
 p {
   margin-bottom: 15px;
   font-weight: 400;
@@ -191,7 +182,6 @@ p {
   font-family: 'Huninn', sans-serif;
 }
 
-/* 이미지 스타일 */
 img {
   display: block;
   margin: 10px auto;
@@ -211,7 +201,6 @@ img:active {
 .img-half { width: 50%; }
 .img-third { width: 33%; }
 
-/* 이미지 필터 카트롤 */
 .image-filter-controls {
   display: flex;
   gap: 10px;
@@ -326,7 +315,6 @@ figcaption {
   transition: color 0.3s;
 }
 
-/* 각주 */
 sup a {
   text-decoration: none;
   color: var(--link-color);
@@ -342,12 +330,10 @@ sup a:active {
   color: var(--link-color);
 }
 
-/* 삭제선 */
 del {
   color: #b00;
 }
 
-/* 링크 스타일 */
 a {
   color: var(--link-color);
   text-decoration: underline;
@@ -358,7 +344,6 @@ a:active {
   color: var(--link-hover);
 }
 
-/* 지도 카테이너 */
 .map-container {
   margin: 20px 0;
   border-radius: 8px;
@@ -389,7 +374,6 @@ a:active {
   box-shadow: 0 2px 8px var(--shadow-color);
 }
 
-/* 슬라이더 네비게이션 */
 .slider-nav {
   display: flex;
   justify-content: center;
@@ -419,7 +403,6 @@ a:active {
   box-shadow: 0 0 10px var(--heading-color);
 }
 
-/* 태블릿 화면 (768px 이상) */
 @media screen and (min-width: 768px) {
   body {
     padding: 20px;
@@ -454,7 +437,6 @@ a:active {
   }
 }
 
-/* 작은 휴대폰 화면 */
 @media screen and (max-width: 480px) {
   body {
     padding: 12px;
@@ -513,7 +495,6 @@ a:active {
   }
 }
 
-/* 인쇄 스타일 */
 @media print {
   body {
     background-color: white;
