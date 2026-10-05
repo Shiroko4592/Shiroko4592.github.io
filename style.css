@@ -231,7 +231,6 @@ img:active {
   box-shadow: 0 0 10px var(--heading-color);
 }
 
-/* 갤러리 - 터치 스와이프 지원 */
 .gallery {
   display: grid;
   gap: 15px;
