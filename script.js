@@ -82,6 +82,19 @@ function initSearch() {
   });
 }
 
+function initDayNavigation() {
+  const searchInput = document.querySelector('.search-input');
+  document.querySelectorAll('.day-navigation a').forEach(link => {
+    link.addEventListener('click', () => {
+      // Restore hidden day headings before the browser follows the anchor.
+      if (searchInput && searchInput.value !== '') {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  });
+}
+
 function initImageFilters() {
   const filterContainer = document.createElement('div');
   filterContainer.className = 'image-filter-controls';
@@ -293,6 +306,7 @@ function initImageZoom() {
 document.addEventListener('DOMContentLoaded', function() {
   initThemeToggle();
   initSearch();
+  initDayNavigation();
   initImageFilters();
   initTimeline();
   initLikes();

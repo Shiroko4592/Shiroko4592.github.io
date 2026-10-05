@@ -126,6 +126,47 @@ h3, h4 {
   padding-left: 15px;
 }
 
+.day-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.day-navigation a {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 90px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 2px solid var(--heading-color);
+  border-radius: 8px;
+  background-color: var(--bg-color);
+  color: var(--link-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.day-navigation a span {
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.day-navigation a:hover {
+  background-color: var(--heading-color);
+  color: var(--bg-color);
+}
+
+.day-navigation a:focus-visible,
+.day-heading:focus-visible {
+  outline: 3px solid var(--heading-color);
+  outline-offset: 4px;
+}
+
+.day-heading {
+  scroll-margin-top: 150px;
+}
+
 .timeline-container {
   position: relative;
   padding: 20px 0;
